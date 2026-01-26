@@ -14,8 +14,7 @@
 
 ```
 DA_CCNLTHD/               
-├── backend/
-|   ├── src          
+├── backend/      
 │       ├── package.json        
 │       ├── .env                <-- Cấu hình biến môi trường
 │       ├── .gitignore         
