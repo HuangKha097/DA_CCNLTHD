@@ -11,21 +11,29 @@
 - Security: Bcrypt, CORS
 
 #Cấu trúc thư mục:
-src/
-├── app.js               // Khởi tạo App, Middlewares
-├── server.js            // Chạy server
-├── configs/             // Cấu hình DB, Cloudinary
-├── api/
-│   └── v1/
-│       ├── controllers/ // Xử lý request, gọi Service, trả về res.status().json()
-│       │   ├── access.controller.js
-│       │   ├── product.controller.js
-│       │   └── checkout.controller.js
-│       ├── services/    // Logic nghiệp vụ (Vẫn nên giữ để tách biệt logic)
-│       │   ├── access.service.js
-│       │   ├── product.service.js
-│       │   └── checkout.service.js
-│       ├── models/      // Mongoose Schemas
-│       ├── routes/      // Khai báo đường dẫn API
-│       └── utils/       // Hàm tiện ích nhỏ
-└── package.json
+
+```
+DA_CCNLTHD/               
+├── backend/               
+│   ├── package.json        
+│   ├── .env                <-- Cấu hình biến môi trường
+│   ├── .gitignore         
+│   └── src/                <-- Source code chính
+│       ├── app.js          // Khởi tạo App, Middlewares
+│       ├── server.js       // File chạy chính (Entry point)
+│       ├── configs/        // Cấu hình DB, Cloudinary
+│       └── api/           
+│               ├── controllers/ // Xử lý request
+│               │   ├── access.controller.js
+│               │   ├── product.controller.js
+│               │   └── checkout.controller.js
+│               ├── services/    // Logic nghiệp vụ
+│               │   ├── access.service.js
+│               │   ├── product.service.js
+│               │   └── checkout.service.js
+│               ├── models/      // Mongoose Schemas
+│               ├── routes/      // Khai báo API
+│               └── utils/       // Hàm tiện ích
+└── frontend/               <-- (Dự kiến cho React FE)
+
+
