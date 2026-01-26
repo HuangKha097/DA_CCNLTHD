@@ -14,15 +14,16 @@
 
 ```
 DA_CCNLTHD/               
-├── backend/               
-│   ├── package.json        
-│   ├── .env                <-- Cấu hình biến môi trường
-│   ├── .gitignore         
-│   └── src/                <-- Source code chính
-│       ├── app.js          // Khởi tạo App, Middlewares
-│       ├── server.js       // File chạy chính (Entry point)
-│       ├── configs/        // Cấu hình DB, Cloudinary
-│       └── api/           
+├── backend/
+|   ├── src          
+│       ├── package.json        
+│       ├── .env                <-- Cấu hình biến môi trường
+│       ├── .gitignore         
+│       └── src/                <-- Source code chính
+│           ├── app.js          // Khởi tạo App, Middlewares
+│           ├── server.js       // File chạy chính (Entry point)
+│           ├── configs/        // Cấu hình DB, Cloudinary
+│           └── api/           
 │               ├── controllers/ // Xử lý request
 │               │   ├── access.controller.js
 │               │   ├── product.controller.js
