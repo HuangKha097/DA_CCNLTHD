@@ -1,31 +1,37 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
+// Sub-document cho Address
 const addressSchema = new mongoose.Schema({
     street: String,
     city: String,
+    country: String,
     ward: String,
-    isDefault: Boolean,
-})
+    details: String,
+    isDefault: { type: Boolean, default: false },
+}, { _id: false });
 
-const userSchema = new mongoose.Schema(
-    {
-        name: { type:String},
-        email: { type: String },
-        password: {type: String, required:true },
-        role: { type: String, enum: ['admin', 'user', "vendor"] },
-        address:{
-            type: addressSchema,
-            required: true,
-        },
-        key_token: { type: String },
-        status: { type: String, enum: ['active', 'inactive'] },
-        avatar: { type: String },
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    roles: {
+        type: [String],
+        enum: ['admin', 'user', 'vendor'],
+        default: ['user']
     },
-    {
-        // se co thoi gian tao va update
-        timestamps: true
-    }
-)
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'block'],
+        default: 'active'
+    },
+    address: {
+        type: [addressSchema],
+        default: []
+    },
+    avatar: { type: String },
+}, {
+    timestamps: true,
+    collection: 'Users'
+});
 
-const User = mongoose.model("User", userSchema);
-module.exports = User;
+module.exports = mongoose.model("User", userSchema);

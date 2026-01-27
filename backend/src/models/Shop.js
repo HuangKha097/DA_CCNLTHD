@@ -1,35 +1,27 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const shopSchema = new mongoose.Schema({
-    owner:{
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    name:{
-        type: String,
-        required: true
-    },
-    email:{
-        type: String,
-        required: true,
-    },
-    status:{
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true },
+    status: {
         type: String,
         enum: ['active', 'inactive'],
         default: 'active'
     },
-    verified:{
+    verified: {
         type: Boolean,
         default: false
     },
-    logo:{
+    logo: { type: String, default: '' },
+    coverInfo: { type: String, default: '' }
+}, {
+    timestamps: true,
+    collection: 'Shops'
+});
 
-    },
-    coverInfo:{
-
-    }
-})
-
-const Shop = mongoose.model("Shop", shopSchema);
-module.exports = Shop;
+module.exports = mongoose.model("Shop", shopSchema);

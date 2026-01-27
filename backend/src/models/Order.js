@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
     order_userId: {
@@ -6,27 +6,43 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    order_checkout:{
-
+    order_checkout: {
+        type: Object,
+        default: {}
+        /*
+            totalPrice,
+            totalApplyDiscount,
+            feeShip
+        */
     },
-    order_shipping:{
-
+    order_shipping: {
+        type: Object,
+        default: {}
+        /*
+            street, city, ward, country, detail,...
+        */
     },
-    order_payment:{
-
+    order_payment: {
+        type: Object,
+        default: {}
+        /*
+            user_pay, method (credit/cod)
+        */
     },
-    order_products:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Cart",
+    order_products: {
+        type: Array,
         required: true
+        // Snapshot sản phẩm tại thời điểm mua
     },
-    order_status:{
+    order_trackingNumber: { type: String, default: '#00001234' },
+    order_status: {
         type: String,
-        enum: ['pending', 'cancel', "shipping", "complete"],
+        enum: ['pending', 'confirmed', 'shipping', 'cancelled', 'delivered'],
         default: 'pending',
     }
+}, {
+    timestamps: true,
+    collection: 'Orders'
+});
 
-})
-
-const Order = mongoose.model("Order", orderSchema);
-module.exports = Order;
+module.exports = mongoose.model("Order", orderSchema);

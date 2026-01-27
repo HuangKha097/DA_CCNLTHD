@@ -1,23 +1,24 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const inventorySchema = new mongoose.Schema({
-    iven_productId:{
+    inven_productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+    },
+    inven_shopId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Shop',
+        required: true
+    },
+    inven_location: {type: String, default: 'unKnown'},
+    inven_stock: {type: Number, required: true},
+    inven_reservations: {type: Array, default: []}
+    /* reservations lưu: [{ quantity: 1, cartId: ..., createOn: ... }] để giữ hàng khi user thêm vào giỏ nhưng chưa thanh toán
+    */
+}, {
+    timestamps: true,
+    collection: 'Inventories'
+});
 
-    },
-    iven_shopId: {},
-    iven_location: {
-        type: String,
-        required: true,
-    },
-    iven_stock: {
-        type: Number,
-        required: true,
-    },
-    iven_reservations:{
-        type: Array,
-        required: true,
-    }
-})
-
-const Inventory = mongoose.model("Inventory", inventorySchema);
-module.exports = Inventory;
+module.exports = mongoose.model("Inventory", inventorySchema);
