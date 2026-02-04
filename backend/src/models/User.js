@@ -1,6 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-// Sub-document cho Address
 const addressSchema = new mongoose.Schema({
     street: String,
     city: String,
@@ -34,4 +33,4 @@ const userSchema = new mongoose.Schema({
     collection: 'Users'
 });
 
-module.exports = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);

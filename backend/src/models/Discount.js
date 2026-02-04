@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const discountSchema = new mongoose.Schema({
     discount_shopId: {
@@ -25,4 +25,4 @@ const discountSchema = new mongoose.Schema({
     collection: 'Discounts'
 });
 
-module.exports = mongoose.model("Discount", discountSchema);
+export default mongoose.model("Discount", discountSchema);

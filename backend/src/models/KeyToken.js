@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const keyTokenSchema = new mongoose.Schema({
     user: {
@@ -11,11 +11,11 @@ const keyTokenSchema = new mongoose.Schema({
     refreshTokensUsed: {
         type: Array,
         default: []
-    }, // Những token đã sử dụng
-    refreshToken: { type: String, required: true } // Token hiện tại đang dùng
+    },
+    refreshToken: { type: String, required: true }
 }, {
     timestamps: true,
     collection: 'KeyTokens'
 });
 
-module.exports = mongoose.model("KeyToken", keyTokenSchema);
+export default mongoose.model("KeyToken", keyTokenSchema);

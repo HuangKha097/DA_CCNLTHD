@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const shopSchema = new mongoose.Schema({
     owner: {
@@ -24,4 +24,4 @@ const shopSchema = new mongoose.Schema({
     collection: 'Shops'
 });
 
-module.exports = mongoose.model("Shop", shopSchema);
+export default mongoose.model("Shop", shopSchema);
