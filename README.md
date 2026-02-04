@@ -23,6 +23,8 @@ DA_CCNLTHD/
 │           ├── configs/        // Cấu hình DB, Cloudinary
 |           |      ├── db.js
 |           |      ├── cloudinary.js
+|           └── middlewares/ // Xử lý Authentication
+│           │     ├── AuthenToken.js
 │           └── controllers/ // Xử lý request
 │           │     ├── access.controller.js
 │           │     ├── product.controller.js
