@@ -1,11 +1,107 @@
-GET http://localhost:5001/books
-Authorization: Beaer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzAyMDQ2NTUsImV4cCI6MTc3MDIwODI1NX0.IZykANEuXJ6-JS6XBrmAnbHm-B2GTsbsNBlo4HsnREU
-###
-POST http://localhost:5001/api/user/login
-Content-Type: application/json
+@hostname = localhost
+@port = 5001
+@host = http://{{hostname}}:{{port}}
+@contentType = application/json
+
+# Điền ID User sau khi vào đây:
+@userId = 698337b70478bd00dcc9b4a8
+
+# Điền Access Token sau khi đăng nhập vào đây:
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzA0NDA1OTcsImV4cCI6MTc3MDYxMzM5N30.9JnZKkkcojOnVgXwCIdYhZr1_vJByR7olsxbBVZdk5g
+
+
+### ==========================================
+### 1. ĐĂNG KÝ
+### ==========================================
+POST {{host}}/api/user/signup
+Content-Type: {{contentType}}
 
 {
+  "name": "Nguyen Van A",
+  "email": "testuser01@gmail.com",
+  "password": "password123"
+}
 
+### ==========================================
+### 2. ĐĂNG NHẬP
+### ==========================================
+
+POST {{host}}/api/user/login
+Content-Type: {{contentType}}
+
+{
   "email": "example@gmail.com",
   "password": "123456"
+
 }
+
+
+### ==========================================
+### 3. LẤY THÔNG TIN USER
+### ==========================================
+GET {{host}}/api/user/info/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+
+### ==========================================
+### 4. CẬP NHẬT THÔNG TIN
+### ==========================================
+PUT {{host}}/api/user/update/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "name": "example01"
+}
+
+
+### ==========================================
+### 5. THÊM ĐỊA CHỈ
+### ==========================================
+POST {{host}}/api/user/address/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "street": "123 Bến Thành",
+  "city": "Ho Chi Minh",
+  "country": "Vietnam",
+  "ward": "Phường 1",
+  "details": "Gần chợ Bến Thành"
+}
+
+### ==========================================
+### 6. THÊM ĐỊA CHỈ THỨ 2
+### ==========================================
+POST {{host}}/api/user/address/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "street": "123 Sối Tiên",
+  "city": "Ho Chi Minh",
+  "country": "Vietnam",
+  "ward": "Phường 6",
+  "details": "Gần Bến Xe Miền Đông"
+}
+
+
+### ==========================================
+### 7. XÓA ĐỊA CHỈ
+### ==========================================
+#Số 1 ở cuối URL là index của địa chỉ trong mảng (0 là địa chỉ đầu tiên)
+DELETE {{host}}/api/user/address/{{userId}}/1
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+
+### ==========================================
+### 8. ĐĂNG XUẤT
+### ==========================================
+# Cần header x-client-id để server biết xóa key của user nào
+POST {{host}}/api/user/logout
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+

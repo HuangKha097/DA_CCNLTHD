@@ -1,0 +1,1 @@
+//tính năng mã giảm giá: Tạo mã mới (cho Shop/Admin), kiểm tra mã hợp lệ, áp dụng mã vào đơn hàng.
