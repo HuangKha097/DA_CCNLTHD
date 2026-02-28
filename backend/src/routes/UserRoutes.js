@@ -10,7 +10,6 @@ router.post('/signup', signUp);
 router.post('/login', login);
 
 // --- PRIVATE ROUTES ---
-
 router.post('/logout', authenToken, logout);
 
 

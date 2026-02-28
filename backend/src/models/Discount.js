@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const discountSchema = new mongoose.Schema({
+    discount_name: {
+        type: String,
+        required: true,
+    },
     discount_shopId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Shop',
