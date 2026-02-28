@@ -4,10 +4,10 @@
 @contentType = application/json
 
 # Điền ID User sau khi vào đây:
-@userId = 698337b70478bd00dcc9b4a8
+@userId =698337b70478bd00dcc9b4a8
 
 # Điền Access Token sau khi đăng nhập vào đây:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzA0NDA1OTcsImV4cCI6MTc3MDYxMzM5N30.9JnZKkkcojOnVgXwCIdYhZr1_vJByR7olsxbBVZdk5g
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzIyNTM3MDksImV4cCI6MTc3MjQyNjUwOX0.Jcbb7Ude6s-k_m6c1xG46-Zsa76QU1mDv6Nc90Gogx0
 
 
 ### ==========================================
@@ -42,6 +42,7 @@ Content-Type: {{contentType}}
 GET {{host}}/api/user/info/{{userId}}
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
+x-client-id: {{userId}}
 
 
 ### ==========================================
@@ -49,6 +50,7 @@ Content-Type: {{contentType}}
 ### ==========================================
 PUT {{host}}/api/user/update/{{userId}}
 Authorization: Bearer {{token}}
+x-client-id: {{userId}}
 Content-Type: {{contentType}}
 
 {
@@ -61,6 +63,7 @@ Content-Type: {{contentType}}
 ### ==========================================
 POST {{host}}/api/user/address/{{userId}}
 Authorization: Bearer {{token}}
+x-client-id: {{userId}}
 Content-Type: {{contentType}}
 
 {
@@ -76,6 +79,7 @@ Content-Type: {{contentType}}
 ### ==========================================
 POST {{host}}/api/user/address/{{userId}}
 Authorization: Bearer {{token}}
+x-client-id: {{userId}}
 Content-Type: {{contentType}}
 
 {
@@ -93,6 +97,7 @@ Content-Type: {{contentType}}
 #Số 1 ở cuối URL là index của địa chỉ trong mảng (0 là địa chỉ đầu tiên)
 DELETE {{host}}/api/user/address/{{userId}}/1
 Authorization: Bearer {{token}}
+x-client-id: {{userId}}
 Content-Type: {{contentType}}
 
 
