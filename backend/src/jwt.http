@@ -30,8 +30,8 @@ POST {{host}}/api/user/login
 Content-Type: {{contentType}}
 
 {
-  "email": "example@gmail.com",
-  "password": "123456"
+  "email": "testuser01@gmail.com",
+  "password": "password123"
 
 }
 
