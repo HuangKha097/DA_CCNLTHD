@@ -3,13 +3,14 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import KeyToken from "../models/KeyToken.js";
 import User from "../models/User.js";
+import * as JWT from "../utils/JWTToken.js"
 
 
 // --- AUTHENTICATION ---
 const signUp = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        const holderUser = await User.findOne({ email }).lean();
+        const {name, email, password} = req.body;
+        const holderUser = await User.findOne({email}).lean();
         if (holderUser) {
             return res.status(400).json({
                 message: "Lỗi: Email đã được sử dụng!",
@@ -42,28 +43,28 @@ const signUp = async (req, res) => {
             });
         }
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const {email, password} = req.body;
 
-        if (!email || !password) return res.status(400).json({ message: "Vui lòng nhập email và password" });
+        if (!email || !password) return res.status(400).json({message: "Vui lòng nhập email và password"});
 
 
         // check email
-        const foundUser = await User.findOne({ email });
-        if (!foundUser) return res.status(404).json({ message: "Người dùng không tồn tại" });
+        const foundUser = await User.findOne({email});
+        if (!foundUser) return res.status(404).json({message: "Người dùng không tồn tại"});
 
         //check password
         const match = await bcrypt.compare(password, foundUser.password);
-        if (!match) return res.status(401).json({ message: "Mật khẩu không đúng" });
+        if (!match) return res.status(401).json({message: "Mật khẩu không đúng"});
 
         // check status
-        if(foundUser.status === 'block') {
-            return res.status(403).json({ message: "Tài khoản của bạn đã bị khóa" });
+        if (foundUser.status === 'block') {
+            return res.status(403).json({message: "Tài khoản của bạn đã bị khóa"});
         }
 
         // Create Tokens
@@ -71,22 +72,22 @@ const login = async (req, res) => {
         const privateKey = crypto.randomBytes(64).toString('hex');
         const publicKey = crypto.randomBytes(64).toString('hex');
 
-        const tokens = await createTokenPair(
-            { userId: foundUser._id, email: foundUser.email, roles: foundUser.roles },
+        const tokens = await JWT.genneralAccesToken(
+            {userId: foundUser._id, email: foundUser.email, roles: foundUser.roles},
             publicKey,
             privateKey
         );
 
         // Update KeyToken (Lưu refresh token vào DB để check sau này)
         await KeyToken.findOneAndUpdate(
-            { user: foundUser._id },
+            {user: foundUser._id},
             {
                 publicKey,
                 privateKey,
                 refreshToken: tokens.refreshToken,
                 refreshTokensUsed: []
             },
-            { upsert: true, new: true }
+            {upsert: true, new: true}
         );
 
         return res.status(200).json({
@@ -105,22 +106,22 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
 const logout = async (req, res) => {
     try {
         const userId = req.headers['x-client-id'] || req.body.userId;
-        if(!userId) return res.status(400).json({ message: "Thiếu UserId" });
+        if (!userId) return res.status(400).json({message: "Thiếu UserId"});
 
-        const delKey = await KeyToken.findOneAndDelete({ user: userId });
+        const delKey = await KeyToken.findOneAndDelete({user: userId});
         return res.status(200).json({
             message: "Đăng xuất thành công",
             metadata: delKey
         });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
@@ -129,23 +130,23 @@ const getUserInfoById = async (req, res) => {
     try {
         const userId = req.params.userId;
         const data = await User.findById(userId).select("-password -__v");
-        if (!data) return res.status(404).json({ message: "User not found" });
+        if (!data) return res.status(404).json({message: "User not found"});
 
-        return res.status(200).json({ status: "success", data });
+        return res.status(200).json({status: "success", data});
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
 const updateProfile = async (req, res) => {
     try {
         const userId = req.params.userId;
-        const { name, avatar } = req.body;
+        const {name, avatar} = req.body;
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { name, avatar },
-            { new: true }
+            {name, avatar},
+            {new: true}
         ).select("-password");
 
         return res.status(200).json({
@@ -153,7 +154,7 @@ const updateProfile = async (req, res) => {
             data: updatedUser
         });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
@@ -165,7 +166,7 @@ const addAddress = async (req, res) => {
         const newAddress = req.body; // { street, city, country... }
 
         const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user) return res.status(404).json({message: "User not found"});
 
         //  set default = true nếu đây là địa chỉ đầu tiên,
         if (user.address.length === 0) {
@@ -180,16 +181,16 @@ const addAddress = async (req, res) => {
             data: user.address
         });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
 
 const removeAddress = async (req, res) => {
     try {
-        const { userId, addressIndex } = req.params;
+        const {userId, addressIndex} = req.params;
 
         const user = await User.findById(userId);
-        if(!user) return res.status(404).json({ message: "User not found" });
+        if (!user) return res.status(404).json({message: "User not found"});
 
         // Xóa phần tử trong mảng
         user.address.splice(addressIndex, 1);
@@ -200,27 +201,51 @@ const removeAddress = async (req, res) => {
             data: user.address
         });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({message: "Server error", error: error.message});
     }
 };
-
-// --- UTILS FUNCTION ---
-// dùng tạo ra cùng lúc 2 loại token
-const createTokenPair = async (payload, publicKey, privateKey) => {
+const refreshTokenService = async (req, res) => {
+    const {userId} = req.params;
+    const token = req.headers.token?.split(" ")[1];
     try {
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'secretKey', {
-            expiresIn: '2 days'
-        });
+        // Xác thực refresh_token có hợp lệ không
+        jwt.verify(token, process.env.REFRESH_TOKEN, async (err, user) => {
+            if (err) {
+                return {
+                    status: "ERROR",
+                    message: "Invalid refresh token"
+                }
+            }
 
-        const refreshToken = jwt.sign(payload, process.env.REFRESH_JWT_SECRET || 'refreshSecretKey', {
-            expiresIn: '7 days'
-        });
+            // (Tùy chọn) Kiểm tra xem refresh_token gửi lên có khớp với token lưu trong DB của user không
+            const checkUser = await User.findById(userId);
 
-        return { accessToken, refreshToken };
-    } catch (error) {
-        throw error;
+            if (!checkUser || checkUser.refresh_token !== token) {
+                return {
+                    status: "ERROR",
+                    message: "Refresh token is not valid for this user"
+                }
+            }
+
+            // Nếu hợp lệ, tạo access_token mới
+            const access_token = await JWT.genneralAccesToken({
+                id: user.id,
+                isAdmin: user.isAdmin
+            });
+
+            return {
+                status: "OK",
+                message: "SUCCESS",
+                access_token: access_token
+            }
+        });
+    } catch
+        (error) {
+        reject(error);
     }
+
 };
+
 
 export {
     login,
