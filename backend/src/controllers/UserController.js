@@ -254,6 +254,7 @@ export {
     getUserInfoById,
     updateProfile,
     addAddress,
-    removeAddress
+    removeAddress,
+    refreshTokenService
 }
 
