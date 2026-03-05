@@ -7,7 +7,7 @@
 @userId =698337b70478bd00dcc9b4a8
 
 # Điền Access Token sau khi đăng nhập vào đây:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzIyNTM3MDksImV4cCI6MTc3MjQyNjUwOX0.Jcbb7Ude6s-k_m6c1xG46-Zsa76QU1mDv6Nc90Gogx0
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzI2MDY5NzYsImV4cCI6MTc3MjYwNzAzNn0.XNb4iB9cOI_H94Q3-ag2JSmY5XEy3OKB5IQQ5rTcook
 
 
 ### ==========================================
@@ -17,9 +17,9 @@ POST {{host}}/api/user/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "Nguyen Van A",
-  "email": "testuser01@gmail.com",
-  "password": "password123"
+  "name": "Lưu Hồng Phúc",
+  "email": "luuphuc1368@gmail.com",
+  "password": "marigold123"
 }
 
 ### ==========================================
@@ -30,8 +30,8 @@ POST {{host}}/api/user/login
 Content-Type: {{contentType}}
 
 {
-  "email": "testuser01@gmail.com",
-  "password": "password123"
+  "email": "luuphuc1368@gmail.com",
+  "password": "marigold123"
 
 }
 

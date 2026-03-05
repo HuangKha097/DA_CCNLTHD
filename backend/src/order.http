@@ -6,13 +6,11 @@
 # ===================================================
 # ĐIỀN VÀO ĐÂY SAU KHI ĐĂNG NHẬP:
 # ===================================================
-@userId = 69a3adf5bb599e0cb2d1b879
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWEzYWRmNWJiNTk5ZTBjYjJkMWI4NzkiLCJlbWFpbCI6InRlc3R1c2VyMDFAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzIzMzQ2NjcsImV4cCI6MTc3MjUwNzQ2N30.YiZhiag158VUu9B5Secqri73oEI_iV5FOk1ej7l9DVw
-
-# IDs để test (lấy từ MongoDB sau khi có dữ liệu)
-@shopId = 69a3af6332cdc1c8b61ff936
-@productId = 69a3af6332cdc1c8b61ff938
-@orderId = 69a3b014a4fca2fe7a41b0ff
+@userId = 69a8ebaf3b07f5c02eba707d
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWE4ZWJhZjNiMDdmNWMwMmViYTcwN2QiLCJlbWFpbCI6Imx1dXBodWMxMzY4QGdtYWlsLmNvbSIsInJvbGVzIjpbInVzZXIiXSwiaWF0IjoxNzcyNjc4NTU1LCJleHAiOjE3NzMyODMzNTV9.oUdEUwYztVK8FZ-pKehV-ePoNOqBrVeLG4YPIYZidk4
+@shopId = 69a8ed9338670ca9a5ec14dc
+@productId = 69a8ed9338670ca9a5ec14de
+@orderId = 69a8ee205485848f4253dbad
 
 
 ### ====================================================
