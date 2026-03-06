@@ -1,0 +1,139 @@
+@hostname = localhost
+@port = 5001
+@host = http://{{hostname}}:{{port}}
+@contentType = application/json
+
+# ===================================================
+# ĐIỀN VÀO ĐÂY SAU KHI ĐĂNG NHẬP:
+# ===================================================
+@userId = 69a8ebaf3b07f5c02eba707d
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWE4ZWJhZjNiMDdmNWMwMmViYTcwN2QiLCJlbWFpbCI6Imx1dXBodWMxMzY4QGdtYWlsLmNvbSIsInJvbGVzIjpbInVzZXIiXSwiaWF0IjoxNzcyNjc4NTU1LCJleHAiOjE3NzMyODMzNTV9.oUdEUwYztVK8FZ-pKehV-ePoNOqBrVeLG4YPIYZidk4
+@shopId = 69a8ed9338670ca9a5ec14dc
+@productId = 69a8ed9338670ca9a5ec14de
+@orderId = 69a8ee205485848f4253dbad
+
+
+### ====================================================
+### 1. CHECKOUT REVIEW - Kiểm tra tồn kho trước khi đặt
+### ====================================================
+POST {{host}}/api/order/checkout/review
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "cartItems": [
+    {
+      "productId": "{{productId}}",
+      "shopId": "{{shopId}}",
+      "quantity": 1,
+      "name": "Áo thun test",
+      "price": 150000
+    }
+  ]
+}
+
+
+### ====================================================
+### 2. CHECKOUT - Đặt hàng thật sự
+### ====================================================
+POST {{host}}/api/order/checkout
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "cartItems": [
+    {
+      "productId": "{{productId}}",
+      "shopId": "{{shopId}}",
+      "quantity": 1,
+      "name": "Áo thun test",
+      "price": 150000
+    }
+  ],
+  "shipping": {
+    "street": "123 Lê Lợi",
+    "city": "Hồ Chí Minh",
+    "country": "Vietnam",
+    "ward": "Phường Bến Thành"
+  },
+  "payment": {
+    "method": "cod"
+  }
+}
+
+
+### ====================================================
+### 3. XEM LỊCH SỬ ĐƠN HÀNG CỦA USER
+### ====================================================
+GET {{host}}/api/order/my-orders
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+
+### ====================================================
+### 3b. LỌC THEO TRẠNG THÁI
+### ====================================================
+GET {{host}}/api/order/my-orders?status=pending
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+
+### ====================================================
+### 4. SHOP XEM ĐƠN HÀNG CẦN XỬ LÝ
+### ====================================================
+GET {{host}}/api/order/shop/orders?shopId={{shopId}}&status=pending
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+
+### ====================================================
+### 5. SHOP CẬP NHẬT TRẠNG THÁI ĐƠN (pending -> confirmed)
+### ====================================================
+PATCH {{host}}/api/order/status
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "orderId": "{{orderId}}",
+  "status": "confirmed"
+}
+
+
+### ====================================================
+### 5b. SHOP CHUYỂN SANG ĐANG GIAO (confirmed -> shipping)
+### ====================================================
+PATCH {{host}}/api/order/status
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "orderId": "{{orderId}}",
+  "status": "shipping"
+}
+
+
+### ====================================================
+### 5c. TEST CHUYỂN TRẠNG THÁI KHÔNG HỢP LỆ (phải báo lỗi)
+### ====================================================
+PATCH {{host}}/api/order/status
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "orderId": "{{orderId}}",
+  "status": "pending"
+}
+
+
+### ====================================================
+### 6. USER HỦY ĐƠN HÀNG
+### ====================================================
+PATCH {{host}}/api/order/{{orderId}}/cancel
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
