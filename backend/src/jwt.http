@@ -17,9 +17,9 @@ POST {{host}}/api/user/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "Nguyen Van A",
-  "email": "testuser01@gmail.com",
-  "password": "password123"
+  "name": "Lưu Hồng Phúc",
+  "email": "luuphuc1368@gmail.com",
+  "password": "marigold123"
 }
 
 ### ==========================================
@@ -30,8 +30,8 @@ POST {{host}}/api/user/login
 Content-Type: {{contentType}}
 
 {
-  "email": "example@gmail.com",
-  "password": "123456"
+  "email": "luuphuc1368@gmail.com",
+  "password": "marigold123"
 
 }
 
