@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 // dùng tạo ra cùng lúc 2 loại token
 
 const genneralAccesToken = async (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1m" });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "10d" });
 };
 
 const genneralRefreshToken = async (payload) => {

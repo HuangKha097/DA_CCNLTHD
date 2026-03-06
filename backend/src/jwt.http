@@ -4,10 +4,10 @@
 @contentType = application/json
 
 # Điền ID User sau khi vào đây:
-@userId =698337b70478bd00dcc9b4a8
+@userId =69aada15fc72848495f27efa
 
 # Điền Access Token sau khi đăng nhập vào đây:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTgzMzdiNzA0NzhiZDAwZGNjOWI0YTgiLCJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZXMiOlsidXNlciJdLCJpYXQiOjE3NzI2MDY5NzYsImV4cCI6MTc3MjYwNzAzNn0.XNb4iB9cOI_H94Q3-ag2JSmY5XEy3OKB5IQQ5rTcook
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWFhZGExNWZjNzI4NDg0OTVmMjdlZmEiLCJlbWFpbCI6InRlc3QwMUBnbWFpbC5jb20iLCJyb2xlcyI6WyJ1c2VyIl0sImlhdCI6MTc3MjgwNDY0OCwiZXhwIjoxNzczNjY4NjQ4fQ.aWhVW19P_9r6cFDb_cn-Hv-RXdVRAodzL7cD_980uZM
 
 
 ### ==========================================
@@ -17,9 +17,9 @@ POST {{host}}/api/user/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "Lưu Hồng Phúc",
-  "email": "luuphuc1368@gmail.com",
-  "password": "marigold123"
+  "name": "test01",
+  "email": "test01@gmail.com",
+  "password": "123456"
 }
 
 ### ==========================================
@@ -30,8 +30,8 @@ POST {{host}}/api/user/login
 Content-Type: {{contentType}}
 
 {
-  "email": "luuphuc1368@gmail.com",
-  "password": "marigold123"
+  "email": "test01@gmail.com",
+  "password": "123456"
 
 }
 
@@ -110,3 +110,248 @@ Authorization: Bearer {{token}}
 x-client-id: {{userId}}
 Content-Type: {{contentType}}
 
+
+### ==========================================
+### KHU VỰC TEST API SHOP
+### ==========================================
+
+# Cập nhật ID của shop vào đây sau khi tạo shop thành công:
+@shopId = 69aada5cfc72848495f27f01
+
+### ==========================================
+### 9. ĐĂNG KÝ SHOP MỚI
+### ==========================================
+POST {{host}}/api/shop/signup
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "name": "Shop test 01",
+  "email": "test01@gmail.com",
+  "ownerId": "{{userId}}"
+}
+
+
+### ==========================================
+### 10. ĐĂNG NHẬP SHOP
+### ==========================================
+# API này trong code không yêu cầu authenToken
+POST {{host}}/api/shop/login
+Content-Type: {{contentType}}
+
+{
+  "shopName": "Shop test 01",
+  "shopEmail": "test01@gmail.com",
+  "passwordOnwer": "123456"
+}
+
+
+### ==========================================
+### 11. CẬP NHẬT THÔNG TIN SHOP
+### ==========================================
+PUT {{host}}/api/shop/update
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "shopId": "{{shopId}}",
+  "shopName": "Shop test 01 (Đã đổi tên)",
+  "shopLogo": "https://example.com/logo.png",
+  "shopCoverInfo": "Chuyên bán đồ công nghệ"
+}
+
+
+### ==========================================
+### 12. LẤY THÔNG TIN SHOP (HIỂN THỊ TẤT CẢ)
+### ==========================================
+GET {{host}}/api/shop/show-all-information
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "shopId": "{{shopId}}"
+}
+
+### ==========================================
+### KHAI BÁO CÁC BIẾN DÙNG CHUNG
+### ==========================================
+@productId = 69aadf54fc72848495f27f5a
+@discountCode = 83XINHDEP
+@orderId = 69a8e81e15c2e063a37df069
+
+
+### ==========================================
+### KHU VỰC TEST API PRODUCT (SẢN PHẨM)
+### ==========================================
+
+### 13. TẠO SẢN PHẨM MỚI (Dành cho Shop)
+POST {{host}}/api/product/create
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "product_shop": "{{shopId}}",
+  "product_name": "Bàn phím cơ Keychron K8",
+  "product_price": 1500000,
+  "product_description": "Bàn phím cơ không dây, switch Red, có led RGB.",
+  "product_quantity": 50,
+  "product_type": "Electronics",
+  "product_thumb": "https://example.com/thumb.jpg",
+  "product_attributes": {
+    "brand": "Keychron",
+    "switch": "Red Switch",
+    "layout": "87 keys"
+  }
+}
+
+### 14. PUBLISH SẢN PHẨM (Hiển thị lên sàn)
+PATCH {{host}}/api/product/publish/{{productId}}
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+### 15. LẤY TẤT CẢ SẢN PHẨM (Public - Không cần token)
+GET {{host}}/api/product/all?page=1&limit=10
+
+### 16. LẤY CHI TIẾT SẢN PHẨM (Public)
+GET {{host}}/api/product/{{productId}}
+
+
+### ==========================================
+### KHU VỰC TEST API CART (GIỎ HÀNG)
+### ==========================================
+
+### 17. THÊM VÀO GIỎ HÀNG
+POST {{host}}/api/cart/add
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "productId": "{{productId}}",
+  "shopId": "{{shopId}}",
+  "quantity": 2,
+  "name": "Bàn phím cơ Keychron K8",
+  "price": 1500000
+}
+
+### 18. LẤY GIỎ HÀNG CỦA USER
+GET {{host}}/api/cart/{{userId}}
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+
+### ==========================================
+### KHU VỰC TEST API DISCOUNT (MÃ GIẢM GIÁ)
+### ==========================================
+
+### 19. SHOP TẠO MÃ GIẢM GIÁ
+POST {{host}}/api/discount/create
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "shopId": "{{shopId}}",
+  "name": "Mã giảm 8 tháng 3",
+  "code": "{{discountCode}}",
+  "start_date": "2026-03-01T00:00:00.000Z",
+  "end_date": "2026-03-10T23:59:59.000Z",
+  "is_active": true,
+  "value": 100000,
+  "type": "fixed_amount",
+  "max_uses": 100,
+  "uses_per_user": 1,
+  "min_order_value": 500000
+}
+
+### 20. ÁP DỤNG MÃ GIẢM GIÁ KHI CHECKOUT
+POST {{host}}/api/discount/apply
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "code": "{{discountCode}}",
+  "shopId": "{{shopId}}",
+  "userId": "{{userId}}",
+  "orderTotal": 3000000
+}
+
+
+### ==========================================
+### KHU VỰC TEST API ORDER (ĐƠN HÀNG)
+### ==========================================
+
+### 21. REVIEW ĐƠN HÀNG (Kiểm tra tồn kho, tách đơn)
+POST {{host}}/api/order/checkout/review
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "cartItems": [
+    {
+      "productId": "{{productId}}",
+      "shopId": "{{shopId}}",
+      "quantity": 2,
+      "name": "Bàn phím cơ Keychron K8",
+      "price": 1500000
+    }
+  ]
+}
+
+### 22. ĐẶT HÀNG (CHECKOUT)
+POST {{host}}/api/order/checkout
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+Content-Type: {{contentType}}
+
+{
+  "cartItems": [
+    {
+      "productId": "{{productId}}",
+      "shopId": "{{shopId}}",
+      "quantity": 2,
+      "name": "Bàn phím cơ Keychron K8",
+      "price": 1500000
+    }
+  ],
+  "shipping": {
+    "street": "123 Bến Thành",
+    "city": "Ho Chi Minh"
+  },
+  "payment": {
+    "method": "cod"
+  }
+}
+
+### 23. USER XEM ĐƠN HÀNG CỦA MÌNH
+GET {{host}}/api/order/my-orders?status=pending
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+### 24. SHOP XEM ĐƠN HÀNG CẦN XỬ LÝ
+GET {{host}}/api/order/shop/orders?shopId={{shopId}}&status=pending
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}
+
+### 25. SHOP XÁC NHẬN/CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG
+PATCH {{host}}/api/order/status
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+x-client-id: {{userId}}
+
+{
+  "orderId": "{{orderId}}",
+  "status": "confirmed"
+}
+
+### 26. USER HỦY ĐƠN HÀNG
+PATCH {{host}}/api/order/{{orderId}}/cancel
+Authorization: Bearer {{token}}
+x-client-id: {{userId}}

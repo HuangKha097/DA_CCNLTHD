@@ -1,4 +1,4 @@
-//logic giỏ hàng: Thêm sản phẩm vào giỏ, cập nhật số lượng, xóa sản phẩm, tính tổng tiền tạm tính.
+
 import Cart from "../models/Cart.js";
 
 const addToCart = async (req, res) => {

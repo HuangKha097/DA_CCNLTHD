@@ -1,19 +1,9 @@
-// ============================================================
-// OrderController.js
-// Xử lý: Checkout, Tạo đơn hàng, Xem đơn, Cập nhật trạng thái
-// ============================================================
-
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import Inventory from "../models/Inventory.js";
 import mongoose from "mongoose";
 
-// ============================================================
-// [1] CHECKOUT REVIEW - Kiểm tra tồn kho trước khi đặt hàng
-// POST /api/order/checkout/review
-// Theo diagram Sequence_MuaHang: bước 2 -> 7
-// ============================================================
 const checkoutReview = async (req, res) => {
   try {
     const userId = req.headers["x-client-id"];
