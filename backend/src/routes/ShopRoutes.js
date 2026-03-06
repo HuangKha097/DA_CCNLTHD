@@ -1,12 +1,13 @@
 import express from "express";
 
-import { signUp, login, updateShopInfor, showAllInfo } from "../controllers/ShopController.js";
+import {login, showAllInfo, signUp, updateShopInfor} from "../controllers/ShopController.js";
+import {authenToken} from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-router.get("/show-all-information", showAllInfo);
-router.post("/signup", signUp);
+router.get("/show-all-information", authenToken, showAllInfo);
+router.post("/signup", authenToken, signUp);
 router.post("/login", login);
-router.put("/update", updateShopInfor);
+router.put("/update", authenToken, updateShopInfor);
 
 export default router;
