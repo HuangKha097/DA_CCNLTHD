@@ -14,7 +14,7 @@ router.post('/logout', authenToken, logout);
 
 
 router.get('/info/:userId', authenToken, getUserInfoById);
-router.put('/update/:userId', authenToken, updateProfile);
+router.patch('/update/:userId', authenToken, updateProfile);
 
 
 router.post('/address/:userId', authenToken, addAddress);
