@@ -165,10 +165,12 @@ const addAddress = async (req, res) => {
         const userId = req.params.userId;
         const newAddress = req.body; // { street, city, country... }
 
+        if(!newAddress.street || !newAddress.city || !newAddress.country || !newAddress.ward){
+            return res.status(400).json({message: "Trường (street, city, country, ward) là bắt buộc !"});
+        }
+
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({message: "User not found"});
-
-        //  set default = true nếu đây là địa chỉ đầu tiên,
         if (user.address.length === 0) {
             newAddress.isDefault = true;
         }

@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const addressSchema = new mongoose.Schema({
-    street: String,
-    city: String,
-    country: String,
-    ward: String,
+    street: {type: String, required: true},
+    city: {type: String, required: true},
+    country:{type: String, required: true},
+    ward:{type: String, required: true},
     details: String,
     isDefault: { type: Boolean, default: false },
 }, { _id: false });
