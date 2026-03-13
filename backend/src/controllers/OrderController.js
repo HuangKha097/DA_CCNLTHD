@@ -94,7 +94,7 @@ const checkoutReview = async (req, res) => {
 };
 
 // ============================================================
-// [2] CHECKOUT - Đặt hàng thật sự, tạo Order trong DB
+// [2] CHECKOUT - Đặt hàng
 // POST /api/order/checkout
 // Theo diagram Sequence_MuaHang: bước 9 -> 16
 // ============================================================
@@ -102,7 +102,6 @@ const checkout = async (req, res) => {
   // Dùng session để đảm bảo tính toàn vẹn dữ liệu (Transaction-like)
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const userId = req.headers["x-client-id"];
     const { cartItems, shipping, payment } = req.body;
@@ -111,7 +110,6 @@ const checkout = async (req, res) => {
             shipping: { street, city, country, ... }
             payment: { method: 'cod' | 'credit' }
         */
-
     if (!cartItems || cartItems.length === 0) {
       await session.abortTransaction();
       return res.status(400).json({ message: "Giỏ hàng trống" });
