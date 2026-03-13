@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 
 const signUp = async (req, res) => {
+    
     try {
         const {name, email, ownerId} = req.body;
         const checkOwner = await User.findOne({ _id: ownerId });
