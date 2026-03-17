@@ -6,12 +6,14 @@ import {
   getShopOrders,
   updateOrderStatus,
   cancelOrder,
+  getShopDashboardStats,
 } from "../controllers/OrderController.js";
 import { authenToken } from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-router.post("/checkout/review", authenToken, checkoutReview);
+router.get("/shop/stats", authenToken, getShopDashboardStats);
+ router.post("/checkout/review", authenToken, checkoutReview);
 router.post("/checkout", authenToken, checkout);
 router.get("/my-orders", authenToken, getMyOrders);
 router.patch("/:orderId/cancel", authenToken, cancelOrder);

@@ -1,6 +1,6 @@
 import express from "express";
 
-import {signUp, login, logout, getUserInfoById, updateProfile, removeAddress, addAddress } from "../controllers/UserController.js";
+import {signUp, login, logout, getUserInfoById, updateProfile, changePassword, removeAddress, addAddress } from "../controllers/UserController.js";
 import {authenToken} from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
@@ -14,7 +14,8 @@ router.post('/logout', authenToken, logout);
 
 
 router.get('/info/:userId', authenToken, getUserInfoById);
-router.patch('/update/:userId', authenToken, updateProfile);
+router.put('/update/:userId', authenToken, updateProfile);
+router.put('/password/:userId', authenToken, changePassword);
 
 
 router.post('/address/:userId', authenToken, addAddress);

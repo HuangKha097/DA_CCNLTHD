@@ -10,6 +10,10 @@ const discountSchema = new mongoose.Schema({
         ref: 'Shop',
         required: true,
     },
+    discount_user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
     discount_code: { type: String, required: true },
     discount_value: { type: Number, required: true }, // Giá trị giảm
     discount_type: {
