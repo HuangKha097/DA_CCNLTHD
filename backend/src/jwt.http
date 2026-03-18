@@ -4,11 +4,10 @@
 @contentType = application/json
 
 # Điền ID User sau khi vào đây:
-@userId =69aada15fc72848495f27efa
+@userId =69ba14cd4c7f3cd8a33f45d7
 
 # Điền Access Token sau khi đăng nhập vào đây:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWFhZGExNWZjNzI4NDg0OTVmMjdlZmEiLCJlbWFpbCI6InRlc3QwMUBnbWFpbC5jb20iLCJyb2xlcyI6WyJ1c2VyIl0sImlhdCI6MTc3MjgwNDY0OCwiZXhwIjoxNzczNjY4NjQ4fQ.aWhVW19P_9r6cFDb_cn-Hv-RXdVRAodzL7cD_980uZM
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWJhMTRjZDRjN2YzY2Q4YTMzZjQ1ZDciLCJlbWFpbCI6Imx1dXBodWMxMzY4QGdtYWlsLmNvbSIsInJvbGVzIjpbInVzZXIiXSwiaWF0IjoxNzczODAyNzExLCJleHAiOjE3NzQ2NjY3MTF9.lDkblw_53T6CCR-5JtWDppIoZxgRmk9TcG3hG4Cxs_M
 
 ### ==========================================
 ### 1. ĐĂNG KÝ
@@ -17,8 +16,8 @@ POST {{host}}/api/user/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "test01",
-  "email": "test01@gmail.com",
+  "name": "Fayrun",
+  "email": "luuphuc1368@gmail.com",
   "password": "123456"
 }
 
@@ -30,7 +29,7 @@ POST {{host}}/api/user/login
 Content-Type: {{contentType}}
 
 {
-  "email": "test01@gmail.com",
+  "email": "luuphuc1368@gmail.com",
   "password": "123456"
 
 }
@@ -116,7 +115,7 @@ Content-Type: {{contentType}}
 ### ==========================================
 
 # Cập nhật ID của shop vào đây sau khi tạo shop thành công:
-@shopId = 69aada5cfc72848495f27f01
+@shopId = 69ba15954c7f3cd8a33f45de
 
 ### ==========================================
 ### 9. ĐĂNG KÝ SHOP MỚI
@@ -178,7 +177,7 @@ x-client-id: {{userId}}
 ### ==========================================
 ### KHAI BÁO CÁC BIẾN DÙNG CHUNG
 ### ==========================================
-@productId = 69aadf54fc72848495f27f5a
+@productId = 69ba15bc4c7f3cd8a33f45e3
 @discountCode = 83XINHDEP
 @orderId = 69a8e81e15c2e063a37df069
 
