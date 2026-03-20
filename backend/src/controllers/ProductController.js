@@ -1,7 +1,63 @@
 import Product from "../models/Product.js";
 import Shop from "../models/Shop.js";
+import Inventory from "../models/Inventory.js";
+import cloudinary from "../configs/cloudinary.js";
+
+const uploadBufferToCloudinary = (buffer, folder = 'products') => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+
+        stream.end(buffer);
+    });
+};
 
 // --- SHOP/VENDOR FUNCTIONS ---
+
+// Pre-upload images: Upload ảnh trước khi submit form tạo sản phẩm
+const uploadProductImages = async (req, res) => {
+    try {
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+            return res.status(500).json({
+                message: "Cloudinary chưa được cấu hình đầy đủ",
+                status: 'error'
+            });
+        }
+
+        const files = req.files || [];
+        if (!files.length) {
+            return res.status(400).json({
+                message: "Vui lòng gửi ít nhất 1 ảnh (field: images)",
+                status: 'error'
+            });
+        }
+
+        const uploadedImages = await Promise.all(
+            files.map(async (file) => {
+                const uploaded = await uploadBufferToCloudinary(file.buffer, 'products');
+                return {
+                    url: uploaded.secure_url,
+                    public_id: uploaded.public_id
+                };
+            })
+        );
+
+        return res.status(200).json({
+            message: "Upload ảnh thành công",
+            status: 'success',
+            metadata: {
+                images: uploadedImages
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Upload ảnh thất bại", error: error.message });
+    }
+};
 
 // Create Product: Tạo sản phẩm mới
 const createProduct = async (req, res) => {
@@ -18,6 +74,27 @@ const createProduct = async (req, res) => {
             product_images,
             isPublished
         } = req.body;
+
+        const normalizedImages = Array.isArray(product_images)
+            ? product_images.map((img) => {
+                if (typeof img === 'string') return img;
+                if (img && typeof img === 'object') return img.url || img.secure_url || '';
+                return '';
+            }).filter(Boolean)
+            : [];
+
+        const normalizedThumb =
+            (typeof product_thumb === 'string' && product_thumb) ||
+            (product_thumb && typeof product_thumb === 'object' && (product_thumb.url || product_thumb.secure_url)) ||
+            normalizedImages[0] ||
+            null;
+
+        if (!normalizedThumb) {
+            return res.status(400).json({
+                message: "Thiếu product_thumb hoặc danh sách product_images hợp lệ",
+                status: 'error'
+            });
+        }
 
         // Validate shop exists
         const shop = await Shop.findById(product_shop);
@@ -37,10 +114,26 @@ const createProduct = async (req, res) => {
             product_quantity,
             product_type,
             product_attributes,
-            product_thumb,
-            product_images: product_images || [],
+            product_thumb: normalizedThumb,
+            product_images: normalizedImages,
             isPublished: isPublished !== undefined ? isPublished : false // Default là draft
         });
+
+        try {
+            await Inventory.create({
+                inven_productId: newProduct._id,
+                inven_shopId: product_shop,
+                inven_stock: Number(product_quantity),
+                inven_location: req.body.inven_location || 'unKnown'
+            });
+        } catch (inventoryError) {
+            await Product.findByIdAndDelete(newProduct._id);
+            return res.status(500).json({
+                message: "Tạo inventory thất bại, đã rollback sản phẩm",
+                status: 'error',
+                error: inventoryError.message
+            });
+        }
 
         return res.status(201).json({
             message: "Tạo sản phẩm thành công",
@@ -436,6 +529,7 @@ const filterProducts = async (req, res) => {
 
 export {
     // Shop/Vendor functions
+    uploadProductImages,
     createProduct,
     updateProduct,
     publishProduct,

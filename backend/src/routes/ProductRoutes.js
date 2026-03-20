@@ -1,6 +1,8 @@
 import express from "express";
+import multer from "multer";
 
 import {
+    uploadProductImages,
     createProduct,
     updateProduct,
     publishProduct,
@@ -16,6 +18,7 @@ import {
 import { authenToken } from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // --- PUBLIC ROUTES (User/Guest) ---
 router.get('/all', getAllProducts);
@@ -24,6 +27,7 @@ router.get('/filter', filterProducts);
 router.get('/:productId', getProductDetail);
 
 // --- PRIVATE ROUTES (Shop/Vendor) ---
+router.post('/upload', authenToken, upload.array('images', 10), uploadProductImages);
 router.post('/create', authenToken, createProduct);
 router.put('/:productId', authenToken, updateProduct);
 router.delete('/:productId', authenToken, deleteProduct);
