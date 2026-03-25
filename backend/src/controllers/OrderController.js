@@ -3,6 +3,7 @@ import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
 import Inventory from "../models/Inventory.js";
 import Discount from "../models/Discount.js";
+import Shop from "../models/Shop.js";
 import mongoose from "mongoose";
 
 const checkoutReview = async (req, res) => {
@@ -18,6 +19,15 @@ const checkoutReview = async (req, res) => {
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+    }
+
+    const userShop = await Shop.findOne({ owner: userId }).lean();
+    if (userShop) {
+      const userShopId = userShop._id.toString();
+      const hasOwnProduct = cartItems.some(item => item.shopId.toString() === userShopId);
+      if (hasOwnProduct) {
+        return res.status(400).json({ message: "Bạn không thể mua sản phẩm của chính shop mình", status: "error" });
+      }
     }
 
     // --- Bước 3-7: checkAvailability - Kiểm tra tồn kho từng sản phẩm ---
@@ -119,6 +129,16 @@ const checkout = async (req, res) => {
     if (!cartItems || cartItems.length === 0) {
       await session.abortTransaction();
       return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+    }
+
+    const userShop = await Shop.findOne({ owner: userId }).session(session).lean();
+    if (userShop) {
+      const userShopId = userShop._id.toString();
+      const hasOwnProduct = cartItems.some(item => item.shopId.toString() === userShopId);
+      if (hasOwnProduct) {
+        await session.abortTransaction();
+        return res.status(400).json({ message: "Bạn không thể mua sản phẩm của chính shop mình", status: "error" });
+      }
     }
 
     // --- Kiểm tra lại tồn kho lần cuối (race condition prevention) ---

@@ -298,7 +298,10 @@ const getAllProducts = async (req, res) => {
         const { page = 1, limit = 20 } = req.query;
         const skip = (page - 1) * limit;
 
-        const products = await Product.find({ isPublished: true })
+        const activeShops = await Shop.find({ status: 'active' }).select('_id');
+        const activeShopIds = activeShops.map(s => s._id);
+
+        const products = await Product.find({ isPublished: true, product_shop: { $in: activeShopIds } })
             .populate('product_shop', 'name logo')
             .skip(skip)
             .limit(parseInt(limit))
@@ -306,7 +309,7 @@ const getAllProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
-        const total = await Product.countDocuments({ isPublished: true });
+        const total = await Product.countDocuments({ isPublished: true, product_shop: { $in: activeShopIds } });
 
         return res.status(200).json({
             message: "Lấy danh sách sản phẩm thành công",
@@ -332,7 +335,7 @@ const getProductDetail = async (req, res) => {
         const { productId } = req.params;
 
         const product = await Product.findById(productId)
-            .populate('product_shop', 'name email logo verified')
+            .populate('product_shop', 'name email logo verified status')
             .select('-__v')
             .lean();
 
@@ -343,10 +346,10 @@ const getProductDetail = async (req, res) => {
             });
         }
 
-        // Chỉ cho xem sản phẩm đã publish (trừ khi là shop owner)
-        if (!product.isPublished) {
+        // Chỉ cho xem sản phẩm đã publish và shop đang active (trừ khi là shop owner)
+        if (!product.isPublished || (product.product_shop && product.product_shop.status === 'inactive')) {
             return res.status(403).json({
-                message: "Sản phẩm chưa được public",
+                message: "Sản phẩm hoặc gian hàng hiện không khả dụng",
                 status: 'error'
             });
         }
@@ -375,9 +378,13 @@ const getRelatedProducts = async (req, res) => {
             });
         }
 
+        const activeShops = await Shop.find({ status: 'active' }).select('_id');
+        const activeShopIds = activeShops.map(s => s._id);
+
         const related = await Product.find({
             _id: { $ne: productId },
             product_type: product.product_type,
+            product_shop: { $in: activeShopIds },
             isPublished: true
         })
             .limit(parseInt(limit))
@@ -412,8 +419,12 @@ const searchProducts = async (req, res) => {
         // Search trong product_name và product_description
         const searchRegex = new RegExp(keyword, 'i');
         
+        const activeShops = await Shop.find({ status: 'active' }).select('_id');
+        const activeShopIds = activeShops.map(s => s._id);
+
         const products = await Product.find({
             isPublished: true,
+            product_shop: { $in: activeShopIds },
             $or: [
                 { product_name: searchRegex },
                 { product_description: searchRegex }
@@ -428,6 +439,7 @@ const searchProducts = async (req, res) => {
 
         const total = await Product.countDocuments({
             isPublished: true,
+            product_shop: { $in: activeShopIds },
             $or: [
                 { product_name: searchRegex },
                 { product_description: searchRegex }
@@ -469,8 +481,11 @@ const filterProducts = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
+        const activeShops = await Shop.find({ status: 'active' }).select('_id');
+        const activeShopIds = activeShops.map(s => s._id);
+
         // Build query filter
-        const filter = { isPublished: true };
+        const filter = { isPublished: true, product_shop: { $in: activeShopIds } };
 
         if (keyword) {
             const searchRegex = new RegExp(keyword, 'i');

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars, Float } from '@react-three/drei';
-import { Home, User, LogOut, Settings, Search, ShoppingCart } from 'lucide-react';
+import { Home, User, LogOut, Settings, Search, ShoppingCart, Shield } from 'lucide-react';
 import './index.css';
 
 // Placeholder Pages (To be built out)
@@ -17,6 +17,7 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import SellerAuth from './pages/SellerAuth';
 import SellerDashboard from './pages/SellerDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import { Navigate, useLocation } from 'react-router-dom';
 
 // --- PROTECTED ROUTE COMPONENT ---
@@ -72,6 +73,9 @@ const Navbar = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = React.useState('');
 
+    const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+    const isAdmin = userInfo.roles?.includes('admin');
+
     const handleLogout = () => {
         localStorage.clear();
         navigate('/login');
@@ -121,10 +125,16 @@ const Navbar = () => {
             </form>
 
             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                <Link to="/" title="Home" style={{ color: 'var(--text-muted)' }}><Home size={20} /></Link>
-                <Link to="/profile" title="Profile" style={{ color: 'var(--text-muted)' }}><User size={20} /></Link>
-                <Link to="/cart" title="Cart" style={{ color: 'var(--text-muted)' }}><ShoppingCart size={20} /></Link>
-                <Link to="/settings" title="Settings" style={{ color: 'var(--text-muted)' }}><Settings size={20} /></Link>
+                {isAdmin ? (
+                    <Link to="/admin/dashboard" title="Admin Panel" style={{ color: '#eab308' }}><Shield size={20} /></Link>
+                ) : (
+                    <>
+                        <Link to="/" title="Home" style={{ color: 'var(--text-muted)' }}><Home size={20} /></Link>
+                        <Link to="/profile" title="Profile" style={{ color: 'var(--text-muted)' }}><User size={20} /></Link>
+                        <Link to="/cart" title="Cart" style={{ color: 'var(--text-muted)' }}><ShoppingCart size={20} /></Link>
+                        <Link to="/settings" title="Settings" style={{ color: 'var(--text-muted)' }}><Settings size={20} /></Link>
+                    </>
+                )}
                 {localStorage.getItem('access_token') ? (
                      <button onClick={handleLogout} title="Logout" style={{ color: 'var(--danger)', padding: 0 }}>
                          <LogOut size={20} />
@@ -167,7 +177,11 @@ function App() {
             
             <main style={{ flex: 1, padding: '1rem', maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
                 <Routes>
-                    <Route path="/" element={<HomePage />} />
+                    <Route path="/" element={
+                        JSON.parse(localStorage.getItem('user_info') || '{}').roles?.includes('admin') 
+                        ? <Navigate to="/admin/dashboard" replace /> 
+                        : <HomePage />
+                    } />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/shops/:shopId" element={<ShopPage />} />
@@ -178,6 +192,7 @@ function App() {
                     <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
                     <Route path="/seller" element={<SellerAuth />} />
                     <Route path="/seller/dashboard" element={<SellerDashboard />} />
+                    <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
                 </Routes>
             </main>
 

@@ -120,7 +120,13 @@ const SellerDashboard = () => {
                 width: '260px', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column'
             }}>
                 <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--primary)', margin: '0 auto 10px' }}></div>
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--primary)', margin: '0 auto 10px' }}>
+                        <img
+                            src={shopInfo?.logo || 'https://via.placeholder.com/150?text=Shop'}
+                            style={{ width: '100%', height: '100%', borderRadius: '18px', objectFit: 'cover' }}
+                            alt={shopInfo?.name}
+                        />
+                    </div>
                     <h3 style={{ margin: 0 }}>{shopInfo.name}</h3>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Kênh Người Bán</p>
                 </div>
