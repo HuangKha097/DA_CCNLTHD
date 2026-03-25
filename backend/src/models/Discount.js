@@ -33,4 +33,7 @@ const discountSchema = new mongoose.Schema({
     collection: 'Discounts'
 });
 
+discountSchema.index({ discount_code: 1 });
+discountSchema.index({ discount_shopId: 1 });
+
 export default mongoose.model("Discount", discountSchema);

@@ -3,6 +3,9 @@ import {connectDB} from "./configs/db.js";
 import dotenv from "dotenv";
 import cors from "cors";
 
+import User from "./models/User.js";
+import bcrypt from "bcrypt";
+
 import UserRoutes from "./routes/UserRoutes.js";
 import ProductRoutes from "./routes/ProductRoutes.js";
 import ReviewRoutes from "./routes/ReviewRoutes.js";
@@ -15,7 +18,24 @@ import {routes} from './routes/index.js';
 dotenv.config();
 const app = express();
 
-connectDB()
+connectDB().then(async () => {
+    try {
+        const adminEmail = "admin123@gmail.com";
+        const adminExists = await User.findOne({ email: adminEmail });
+        if (!adminExists) {
+            const passwordHash = await bcrypt.hash("123456", 10);
+            await User.create({
+                name: "Admin",
+                email: adminEmail,
+                password: passwordHash,
+                roles: ["admin", "user"]
+            });
+            console.log("Admin account seeded successfully.");
+        }
+    } catch (error) {
+        console.log("Error seeding admin", error);
+    }
+});
 
 app.use(cors())
 app.use(express.json())

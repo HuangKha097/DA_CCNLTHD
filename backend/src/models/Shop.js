@@ -10,8 +10,8 @@ const shopSchema = new mongoose.Schema({
     email: { type: String, required: true, trim: true },
     status: {
         type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+        enum: ['active', 'inactive', 'banned'],
+        default: 'active',
     },
     verified: {
         type: Boolean,

@@ -25,6 +25,7 @@ const signUp = async (req, res) => {
     });
 
     if (newShop) {
+      await User.findByIdAndUpdate(ownerId, { $addToSet: { roles: 'vendor' } });
       return res.status(201).json({
         message: "Đăng ký thành công!",
         status: "success",
@@ -72,7 +73,8 @@ const login = async (req, res) => {
             shop: {
                 _id: checkShopEmail._id,
                 name: checkShopEmail.name,
-                email: checkShopEmail.email
+                email: checkShopEmail.email,
+                status: checkShopEmail.status
             }
         } 
     });
@@ -155,6 +157,7 @@ const searchShops = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const shops = await Shop.find({
+      status: 'active',
       $or: [{ name: searchRegex }, { email: searchRegex }]
     })
       .select("-owner -createdAt -updatedAt -__v")
@@ -163,6 +166,7 @@ const searchShops = async (req, res) => {
       .lean();
 
     const total = await Shop.countDocuments({
+      status: 'active',
       $or: [{ name: searchRegex }, { email: searchRegex }]
     });
 
@@ -186,4 +190,57 @@ const searchShops = async (req, res) => {
   }
 };
 
-export { signUp, login, updateShopInfor, showAllInfo, searchShops };
+const disableShop = async (req, res) => {
+  try {
+    const { shopId } = req.body;
+    if (!shopId) return res.status(400).json({ message: "Thiếu shopId", status: "error" });
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) {
+      return res.status(404).json({ message: "Không tìm thấy gian hàng", status: "error" });
+    }
+
+    const newStatus = shop.status === 'active' ? 'inactive' : 'active';
+    const updatedShop = await Shop.findByIdAndUpdate(
+      shopId,
+      { status: newStatus },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: `Đã ${newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hoá'} gian hàng thành công`,
+      status: "success",
+      metadata: updatedShop
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", status: "error", error: error.message });
+  }
+};
+
+const deleteShop = async (req, res) => {
+  try {
+    const { shopId } = req.params;
+    if (!shopId) return res.status(400).json({ message: "Thiếu shopId", status: "error" });
+
+    const shop = await Shop.findById(shopId);
+    if (!shop) return res.status(404).json({ message: "Không tìm thấy gian hàng", status: "error" });
+
+    // Remove vendor role from user
+    await User.findByIdAndUpdate(shop.owner, { $pull: { roles: 'vendor' } });
+
+    // Delete all products of the shop
+    await Product.deleteMany({ product_shop: shopId });
+
+    // Delete shop itself
+    await Shop.findByIdAndDelete(shopId);
+
+    return res.status(200).json({
+      message: "Xoá gian hàng và toàn bộ sản phẩm thành công",
+      status: "success"
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", status: "error", error: error.message });
+  }
+};
+
+export { signUp, login, updateShopInfor, showAllInfo, searchShops, disableShop, deleteShop };
