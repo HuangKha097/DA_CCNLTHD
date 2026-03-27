@@ -3,6 +3,26 @@ import Shop from "../models/Shop.js";
 import Inventory from "../models/Inventory.js";
 import cloudinary from "../configs/cloudinary.js";
 
+const toStringId = (value) => (value ? String(value) : '');
+
+const getRequesterUserId = (req) => {
+    return req?.user?.userId || req?.user?._id || req.headers['x-client-id'] || null;
+};
+
+const findOwnedShop = async (shopId, userId) => {
+    return Shop.findOne({ _id: shopId, owner: userId });
+};
+
+const findOwnedProduct = async (productId, userId) => {
+    const product = await Product.findById(productId).populate('product_shop', 'owner');
+    if (!product || !product.product_shop) return null;
+
+    const ownerId = product.product_shop.owner;
+    if (toStringId(ownerId) !== toStringId(userId)) return null;
+
+    return product;
+};
+
 const uploadBufferToCloudinary = (buffer, folder = 'products') => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -62,6 +82,14 @@ const uploadProductImages = async (req, res) => {
 // Create Product: Tạo sản phẩm mới
 const createProduct = async (req, res) => {
     try {
+        const requesterUserId = getRequesterUserId(req);
+        if (!requesterUserId) {
+            return res.status(401).json({
+                message: "Không xác định được người dùng",
+                status: 'error'
+            });
+        }
+
         const {
             product_shop,
             product_name,
@@ -97,10 +125,10 @@ const createProduct = async (req, res) => {
         }
 
         // Validate shop exists
-        const shop = await Shop.findById(product_shop);
+        const shop = await findOwnedShop(product_shop, requesterUserId);
         if (!shop) {
-            return res.status(404).json({
-                message: "Shop không tồn tại",
+            return res.status(403).json({
+                message: "Bạn không có quyền tạo sản phẩm cho shop này",
                 status: 'error'
             });
         }
@@ -150,6 +178,22 @@ const updateProduct = async (req, res) => {
     try {
         const { productId } = req.params;
         const updateData = req.body;
+        const requesterUserId = getRequesterUserId(req);
+
+        if (!requesterUserId) {
+            return res.status(401).json({
+                message: "Không xác định được người dùng",
+                status: 'error'
+            });
+        }
+
+        const ownedProduct = await findOwnedProduct(productId, requesterUserId);
+        if (!ownedProduct) {
+            return res.status(403).json({
+                message: "Bạn không có quyền cập nhật sản phẩm này",
+                status: 'error'
+            });
+        }
 
         // Không cho phép update product_shop
         delete updateData.product_shop;
@@ -181,6 +225,22 @@ const updateProduct = async (req, res) => {
 const publishProduct = async (req, res) => {
     try {
         const { productId } = req.params;
+        const requesterUserId = getRequesterUserId(req);
+
+        if (!requesterUserId) {
+            return res.status(401).json({
+                message: "Không xác định được người dùng",
+                status: 'error'
+            });
+        }
+
+        const ownedProduct = await findOwnedProduct(productId, requesterUserId);
+        if (!ownedProduct) {
+            return res.status(403).json({
+                message: "Bạn không có quyền public sản phẩm này",
+                status: 'error'
+            });
+        }
 
         const product = await Product.findByIdAndUpdate(
             productId,
@@ -209,6 +269,22 @@ const publishProduct = async (req, res) => {
 const unpublishProduct = async (req, res) => {
     try {
         const { productId } = req.params;
+        const requesterUserId = getRequesterUserId(req);
+
+        if (!requesterUserId) {
+            return res.status(401).json({
+                message: "Không xác định được người dùng",
+                status: 'error'
+            });
+        }
+
+        const ownedProduct = await findOwnedProduct(productId, requesterUserId);
+        if (!ownedProduct) {
+            return res.status(403).json({
+                message: "Bạn không có quyền ẩn sản phẩm này",
+                status: 'error'
+            });
+        }
 
         const product = await Product.findByIdAndUpdate(
             productId,
@@ -317,6 +393,22 @@ const getPublishedProducts = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         const { productId } = req.params;
+        const requesterUserId = getRequesterUserId(req);
+
+        if (!requesterUserId) {
+            return res.status(401).json({
+                message: "Không xác định được người dùng",
+                status: 'error'
+            });
+        }
+
+        const ownedProduct = await findOwnedProduct(productId, requesterUserId);
+        if (!ownedProduct) {
+            return res.status(403).json({
+                message: "Bạn không có quyền xóa sản phẩm này",
+                status: 'error'
+            });
+        }
 
         const deletedProduct = await Product.findByIdAndDelete(productId);
 
