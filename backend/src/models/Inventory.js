@@ -14,11 +14,12 @@ const inventorySchema = new mongoose.Schema({
     inven_location: {type: String, default: 'unKnown'},
     inven_stock: {type: Number, required: true},
     inven_reservations: {type: Array, default: []}
-    /* reservations lưu: [{ quantity: 1, cartId: ..., createOn: ... }] để giữ hàng khi user thêm vào giỏ nhưng chưa thanh toán
-    */
+
 }, {
     timestamps: true,
     collection: 'Inventories'
 });
+
+inventorySchema.index({ inven_productId: 1, inven_shopId: 1 });
 
 export default mongoose.model("Inventory", inventorySchema);

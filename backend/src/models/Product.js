@@ -50,4 +50,9 @@ const productSchema = new mongoose.Schema({
     collection: 'Products'
 });
 
+// cho tên sản phẩm và mô tả.
+productSchema.index({product_name: 'text', product_description: 'text'});
+// Single Index: Tăng tốc cực độ khi query danh sách sản phẩm của 1 Shop cụ thể
+productSchema.index({product_shop: 1});
+
 export default mongoose.model("Product", productSchema);

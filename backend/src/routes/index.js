@@ -5,6 +5,7 @@ import ProductRouter from "./ProductRoutes.js";
 import OrderRouter from "./OrderRoutes.js";
 
 import ShopRouter from "./ShopRoutes.js";
+import AdminRouter from "./AdminRoutes.js";
 
 export const routes = (app) => {
   app.use("/api/product", ProductRouter);
@@ -13,7 +14,5 @@ export const routes = (app) => {
   app.use("/api/user", UserRouter);
   app.use("/api/discount", DiscountRouter);
   app.use("/api/shop", ShopRouter);
-
-
-
+  app.use("/api/admin", AdminRouter);
 };

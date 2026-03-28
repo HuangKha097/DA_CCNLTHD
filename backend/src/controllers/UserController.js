@@ -20,7 +20,7 @@ const signUp = async (req, res) => {
         }
 
         // hash password
-        const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(password, 10);// 10 = 2^10 (saltRounds)
 
         // create new user
         const newUser = await User.create({
@@ -305,6 +305,7 @@ export {
     updateProfile,
     changePassword,
     addAddress,
-    removeAddress
+    removeAddress,
+    refreshTokenService
 }
 
