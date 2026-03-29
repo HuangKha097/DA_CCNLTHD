@@ -4,10 +4,10 @@
 @contentType = application/json
 
 # Điền ID User sau khi vào đây:
-@userId =69ba14cd4c7f3cd8a33f45d7
+@userId =69c7446b26ae6f150cead610
 
 # Điền Access Token sau khi đăng nhập vào đây:
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWJhMTRjZDRjN2YzY2Q4YTMzZjQ1ZDciLCJlbWFpbCI6Imx1dXBodWMxMzY4QGdtYWlsLmNvbSIsInJvbGVzIjpbInVzZXIiXSwiaWF0IjoxNzczODAyNzExLCJleHAiOjE3NzQ2NjY3MTF9.lDkblw_53T6CCR-5JtWDppIoZxgRmk9TcG3hG4Cxs_M
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM3NDQ2YjI2YWU2ZjE1MGNlYWQ2MTAiLCJlbWFpbCI6Imx1dXBodWMxMzY4QGdtYWlsLmNvbSIsInJvbGVzIjpbInVzZXIiLCJ2ZW5kb3IiXSwiaWF0IjoxNzc0NzUwMDUwLCJleHAiOjE3NzUwMDkyNTB9.WxR4i2tWHv7Vo_GeN4djofwuueEf-ldjoT7r-rP4DwA
 
 ### ==========================================
 ### 1. ĐĂNG KÝ
@@ -16,8 +16,8 @@ POST {{host}}/api/user/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "Fayrun",
-  "email": "luuphuc1368@gmail.com",
+  "name": "Lê Văn Nam",
+  "email": "nam159632@gmail.com",
   "password": "123456"
 }
 
@@ -115,7 +115,7 @@ Content-Type: {{contentType}}
 ### ==========================================
 
 # Cập nhật ID của shop vào đây sau khi tạo shop thành công:
-@shopId = 69ba15954c7f3cd8a33f45de
+@shopId = 69c744f626ae6f150cead617
 
 ### ==========================================
 ### 9. ĐĂNG KÝ SHOP MỚI
@@ -177,9 +177,9 @@ x-client-id: {{userId}}
 ### ==========================================
 ### KHAI BÁO CÁC BIẾN DÙNG CHUNG
 ### ==========================================
-@productId = 69ba15bc4c7f3cd8a33f45e3
-@discountCode = 83XINHDEP
-@orderId = 69a8e81e15c2e063a37df069
+@productId = 69c7454126ae6f150cead624
+@discountCode = 30T4
+@orderId = 69c74c2726ae6f150cead692
 
 
 ### ==========================================
@@ -256,10 +256,10 @@ x-client-id: {{userId}}
 
 {
   "shopId": "{{shopId}}",
-  "name": "Mã giảm 8 tháng 3",
+  "name": "Mã giảm 30 tháng 4",
   "code": "{{discountCode}}",
-  "start_date": "2026-03-01T00:00:00.000Z",
-  "end_date": "2026-03-10T23:59:59.000Z",
+  "start_date": "2026-03-28T00:00:00.000Z",
+  "end_date": "2026-04-30T23:59:59.000Z",
   "is_active": true,
   "value": 100000,
   "type": "fixed_amount",
@@ -269,7 +269,7 @@ x-client-id: {{userId}}
 }
 
 ### 20. ÁP DỤNG MÃ GIẢM GIÁ KHI CHECKOUT
-POST {{host}}/api/discount/apply
+POST {{host}}/api/discount/amount
 Authorization: Bearer {{token}}
 Content-Type: {{contentType}}
 x-client-id: {{userId}}
@@ -326,6 +326,11 @@ Content-Type: {{contentType}}
   },
   "payment": {
     "method": "cod"
+  },
+  "discounts": {
+    "{{shopId}}": {
+      "code": "{{discountCode}}"
+    }
   }
 }
 
