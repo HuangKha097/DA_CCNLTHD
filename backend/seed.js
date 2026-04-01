@@ -5,11 +5,12 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
-
+  
 await mongoose.connect(process.env.MONGODB_URI);
 console.log("MongoDB Connected");
 
 // ===== INSERT SHOP =====
+
 const shop = await mongoose.connection.collection("Shops").insertOne({
   owner: new mongoose.Types.ObjectId(),
   name: "Shop Test ABC",
