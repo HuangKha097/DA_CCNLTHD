@@ -86,6 +86,7 @@ const login = async (req, res) => {
     }
 };
 
+
 const updateShopInfor = async (req, res) => {
     try {
         const {shopId, shopName, shopLogo, shopCoverInfo} = req.body;
