@@ -85,6 +85,7 @@ const login = async (req, res) => {
             .json({message: "Server error", error: error.message});
     }
 };
+
 const updateShopInfor = async (req, res) => {
     try {
         const {shopId, shopName, shopLogo, shopCoverInfo} = req.body;
