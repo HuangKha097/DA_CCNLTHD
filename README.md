@@ -7,7 +7,6 @@
 - Core: Node.js, Express.js (v4.18.2)
 - Database: MongoDB (Mongoose ODM)
 - Auth: JWT (Access Token & Refresh Token)
-- File Storage: Cloudinary
 - Security: Bcrypt, CORS
 
 #Cấu trúc thư mục:
@@ -22,17 +21,12 @@ DA_CCNLTHD/
 │           ├── index.js       // File chạy chính (Entry point)
 │           ├── configs/        // Cấu hình DB, Cloudinary
 |           |      ├── db.js
-|           |      ├── cloudinary.js
 |           └── middlewares/ // Xử lý Authentication
 │           │     ├── AuthenToken.js
 │           └── controllers/ // Xử lý request
-│           │     ├── access.controller.js
+│           │     ├── shop.controller.js
 │           │     ├── product.controller.js
 │           │     └── checkout.controller.js
-│           ├── services/    // Logic nghiệp vụ
-│           │     ├── access.service.js
-│           │     ├── product.service.js
-│           │     └── checkout.service.js
 │           ├── models/      // Mongoose Schemas
 │           ├── routes/      // Khai báo API
 │           └── utils/       // Hàm tiện ích
