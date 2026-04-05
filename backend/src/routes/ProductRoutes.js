@@ -19,7 +19,7 @@ import { authenToken } from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-// --- PUBLIC ROUTES (User/Guest) ---
+// PUBLIC ROUTES (User/Guest)
 router.get('/all', getAllProducts);
 router.get('/search', searchProducts);
 router.get('/filter', filterProducts);
@@ -27,7 +27,7 @@ router.get('/:productId', getProductDetail);
 router.get('/related/:productId', getRelatedProducts);
 router.get('/published/all/:shopId', getPublishedProducts); // Public access for shop page
 
-// --- PRIVATE ROUTES (Shop/Vendor) ---
+//  PRIVATE ROUTES (Shop/Vendor)
 router.post('/create', authenToken, createProduct);
 router.put('/:productId', authenToken, updateProduct);
 router.delete('/:productId', authenToken, deleteProduct);

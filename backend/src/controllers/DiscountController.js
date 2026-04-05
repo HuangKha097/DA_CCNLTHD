@@ -1,6 +1,5 @@
 import Discount from "../models/Discount.js";
 
-// Tạo mã giảm giá (Dành cho Shop)
 const createDiscountCode = async (req, res) => {
     try {
         const {
@@ -47,7 +46,7 @@ const createDiscountCode = async (req, res) => {
     }
 };
 
-// Tính toán số tiền được giảm (Checkout/Review đơn hàng)
+
 const getDiscountAmount = async (req, res) => {
     try {
         const { code, shopId, userId, orderTotal } = req.body;
@@ -108,7 +107,6 @@ const getDiscountAmount = async (req, res) => {
     }
 };
 
-// Lấy tất cả mã giảm giá của một Shop
 const getAllDiscountsByShop = async (req, res) => {
     try {
         const { shopId } = req.params;
@@ -133,7 +131,7 @@ const getAllDiscountsByShop = async (req, res) => {
     }
 };
 
-// Xóa mã giảm giá
+
 const deleteDiscount = async (req, res) => {
     try {
         const { shopId, code } = req.body;
@@ -155,7 +153,6 @@ const deleteDiscount = async (req, res) => {
     }
 };
 
-// Bật/Tắt mã giảm giá
 const toggleDiscountStatus = async (req, res) => {
     try {
         const { shopId, code, isActive } = req.body;

@@ -6,11 +6,11 @@ import {authenToken} from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-// --- PUBLIC ROUTES ---
+//   PUBLIC ROUTES
 router.post('/signup', signUp);
 router.post('/login', login);
 
-// --- PRIVATE ROUTES ---
+//  PRIVATE ROUTES
 router.post('/logout', authenToken, logout);
 
 

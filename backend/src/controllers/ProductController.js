@@ -270,7 +270,7 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-// Get All Shop Products (Unified list for Vendor)
+// Get All Shop Products
 const getAllShopProducts = async (req, res) => {
     try {
         const { shopId } = req.params;
@@ -290,7 +290,7 @@ const getAllShopProducts = async (req, res) => {
     }
 };
 
-// --- USER/PUBLIC FUNCTIONS ---
+//  USER/PUBLIC FUNCTION
 
 // Get All Products
 const getAllProducts = async (req, res) => {
@@ -539,7 +539,7 @@ const filterProducts = async (req, res) => {
 };
 
 export {
-    // Shop/Vendor functions
+    // Shop/Vendor
     createProduct,
     updateProduct,
     publishProduct,
@@ -549,7 +549,7 @@ export {
     getAllShopProducts,
     deleteProduct,
 
-    // User/Public functions
+    // User/Public
     getAllProducts,
     getProductDetail,
     getRelatedProducts,

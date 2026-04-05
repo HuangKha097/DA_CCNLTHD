@@ -30,12 +30,12 @@ const checkoutReview = async (req, res) => {
       }
     }
 
-    // --- Bước 3-7: checkAvailability - Kiểm tra tồn kho từng sản phẩm ---
+    //   checkAvailability - Kiểm tra tồn kho từng sản phẩm
     const unavailableItems = [];
     const availableItems = [];
 
     for (const item of cartItems) {
-      // 1. Tìm trong bảng Inventory (ưu tiên)
+      //   Tìm trong bảng Inventory (ưu tiên)
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
         inven_shopId: item.shopId,
@@ -43,7 +43,7 @@ const checkoutReview = async (req, res) => {
 
       let availableStock = inventory ? inventory.inven_stock : 0;
 
-      // 2. Fallback: Nếu không có bản ghi Inventory, kiểm tra trực tiếp trong Product model
+      //   Nếu không có bản ghi Inventory, kiểm tra trực tiếp trong Product model
       if (!inventory) {
         const product = await Product.findById(item.productId);
         if (product) {
@@ -60,7 +60,6 @@ const checkoutReview = async (req, res) => {
           available: availableStock,
         });
       } else {
-        // [Còn hàng] - OK
         availableItems.push(item);
       }
     }
@@ -73,7 +72,7 @@ const checkoutReview = async (req, res) => {
       });
     }
 
-    // --- Bước 8: Logic Tách Đơn (Splitting) - GroupBy shop_id ---
+    //   Tách Đơn (Splitting) - GroupBy shop_id
     const shopOrderMap = {};
     for (const item of availableItems) {
       const key = item.shopId.toString();
@@ -107,13 +106,7 @@ const checkoutReview = async (req, res) => {
   }
 };
 
-// ============================================================
-// [2] CHECKOUT - Đặt hàng thật sự, tạo Order trong DB
-// POST /api/order/checkout
-// Theo diagram Sequence_MuaHang: bước 9 -> 16
-// ============================================================
 const checkout = async (req, res) => {
-  // Dùng session để đảm bảo tính toàn vẹn dữ liệu (Transaction-like)
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -141,7 +134,7 @@ const checkout = async (req, res) => {
       }
     }
 
-    // --- Kiểm tra lại tồn kho lần cuối (race condition prevention) ---
+    // Kiểm tra lại tồn kho lần cuối
     for (const item of cartItems) {
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
@@ -164,7 +157,7 @@ const checkout = async (req, res) => {
       }
     }
 
-    // --- Bước 8: Tách đơn theo shop (GroupBy shop_id) ---
+    //  Tách đơn theo shop (GroupBy shop_id)
     const shopOrderMap = {};
     for (const item of cartItems) {
       const key = item.shopId.toString();
@@ -178,13 +171,13 @@ const checkout = async (req, res) => {
     const shopOrders = Object.values(shopOrderMap);
     const createdOrderIds = [];
 
-    // --- Bước 9-10: Tạo Order song song cho từng shop (par) ---
+    // Tạo Order song song cho từng shop (par)
     for (const shopOrder of shopOrders) {
       const shopId = shopOrder.shopId.toString();
       let discountAmount = 0;
       let appliedDiscountCode = null;
 
-      // --- Áp dụng Discount (nếu có) ---
+      // Áp dụng Discount (nếu có)
       if (discounts && discounts[shopId]) {
         const { code } = discounts[shopId];
         const foundDiscount = await Discount.findOne({
@@ -202,7 +195,6 @@ const checkout = async (req, res) => {
             foundDiscount.discount_max_uses > 0;
 
           if (isValid) {
-            // Tính số tiền giảm
             if (foundDiscount.discount_type === 'fixed_amount') {
               discountAmount = foundDiscount.discount_value;
             } else if (foundDiscount.discount_type === 'percentage') {
@@ -244,7 +236,7 @@ const checkout = async (req, res) => {
       createdOrderIds.push(newOrder[0]._id);
     }
 
-    // --- Bước 11-12: updateInventory(decrement) - $inc: { inven_stock: -1 } ---
+    //  updateInventory(decrement) - $inc: { inven_stock: -1 }
     for (const item of cartItems) {
       const result = await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
@@ -252,7 +244,7 @@ const checkout = async (req, res) => {
         { session, new: true }
       );
 
-      // Nếu không có Inventory record, hãy tạo mới với stock là (product_quantity - requested_quantity)
+      // Nếu không có Inventory record,tạo mới với stock là (product_quantity - requested_quantity)
       if (!result) {
         const product = await Product.findById(item.productId).session(session);
         await Inventory.create([
@@ -266,7 +258,7 @@ const checkout = async (req, res) => {
       }
     }
 
-    // --- Bước 13-14: clearCart - Xóa các sản phẩm đã mua khỏi giỏ ---
+    //clearCart
     const purchasedProductIds = cartItems.map((i) => i.productId.toString());
     await Cart.findOneAndUpdate(
       { cart_userId: userId, cart_state: "active" },
@@ -281,7 +273,7 @@ const checkout = async (req, res) => {
 
     await session.commitTransaction();
 
-    // --- Bước 15-16: Trả về order_ids cho Frontend ---
+    // Trả về order_ids cho Frontend
     return res.status(201).json({
       message: "Đặt hàng thành công! Cảm ơn bạn đã mua hàng.",
       status: "success",
@@ -300,10 +292,7 @@ const checkout = async (req, res) => {
   }
 };
 
-// ============================================================
-// [3] GET USER ORDERS - Lịch sử đơn hàng của người mua
-// GET /api/order/my-orders?status=pending
-// ============================================================
+
 const getMyOrders = async (req, res) => {
   try {
     const userId = req.headers["x-client-id"];
@@ -334,11 +323,6 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-// ============================================================
-// [4] GET SHOP ORDERS - Shop xem đơn hàng cần xử lý
-// GET /api/order/shop/orders?status=pending
-// Theo diagram Sequence_XuLyDonHangCuaShop: bước 2 -> 4
-// ============================================================
 const getShopOrders = async (req, res) => {
   try {
     const shopId = req.query.shopId || req.headers["x-shop-id"];
@@ -375,16 +359,11 @@ const getShopOrders = async (req, res) => {
   }
 };
 
-// ============================================================
-// [5] UPDATE ORDER STATUS - Shop xác nhận / cập nhật đơn hàng
-// PATCH /api/order/status
-// Theo diagram Sequence_XuLyDonHangCuaShop: bước 6 -> 8
-// ============================================================
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
 
-    // Trạng thái hợp lệ và thứ tự chuyển đổi được phép
+
     const validTransitions = {
       pending: ["confirmed", "cancelled"],
       confirmed: ["shipping", "cancelled"],
@@ -413,7 +392,6 @@ const updateOrderStatus = async (req, res) => {
       { new: true },
     );
 
-    // (Tùy chọn) Gửi Noti cho User - có thể mở rộng tích hợp socket.io/email sau
 
     return res.status(200).json({
       message: `Cập nhật trạng thái đơn hàng thành công: ${status}`,
@@ -427,10 +405,6 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// ============================================================
-// [6] CANCEL ORDER - User hủy đơn hàng
-// PATCH /api/order/:orderId/cancel
-// ============================================================
 const cancelOrder = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -458,11 +432,10 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Cập nhật trạng thái đơn
     order.order_status = "cancelled";
     await order.save({ session });
 
-    // Hoàn lại tồn kho (rollback inventory)
+    // Hoàn lại tồn kho
     for (const item of order.order_products) {
       await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
@@ -496,16 +469,13 @@ const getShopDashboardStats = async (req, res) => {
       return res.status(400).json({ message: "Thiếu shopId", status: "error" });
     }
 
-    // 1. Total Products
     const totalProducts = await Product.countDocuments({ product_shop: shopId });
 
-    // 2. Pending Orders
     const pendingOrders = await Order.countDocuments({
       "order_products.shopId": shopId,
       order_status: "pending"
     });
 
-    // 3. Total Revenue (from delivered orders)
     const deliveredOrders = await Order.find({
       "order_products.shopId": shopId,
       order_status: "delivered"

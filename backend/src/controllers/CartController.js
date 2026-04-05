@@ -55,7 +55,7 @@ const addToCart = async (req, res) => {
             });
         }
 
-        // tạo cart mới
+
         if (!userCart) {
             const newCart = await Cart.create({
                 cart_userId: userId,
@@ -95,7 +95,7 @@ const addToCart = async (req, res) => {
                 {new: true}
             );
         } else {
-            // thêm sản phẩm mới
+
             updatedCart = await Cart.findOneAndUpdate(
                 {
                     cart_userId: userId,
