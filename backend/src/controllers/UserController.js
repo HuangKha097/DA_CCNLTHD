@@ -7,7 +7,7 @@ import Shop from "../models/Shop.js";
 import * as JWT from "../utils/JWTToken.js"
 
 
-// --- AUTHENTICATION ---
+// AUTHENTICATION
 const signUp = async (req, res) => {
     try {
         const {name, email, password} = req.body;
@@ -54,21 +54,17 @@ const login = async (req, res) => {
 
         if (!email || !password) return res.status(400).json({message: "Vui lòng nhập email và password", status: "error"});
 
-
-        // check email
         const foundUser = await User.findOne({email});
         if (!foundUser) return res.status(404).json({message: "Người dùng không tồn tại", status: "error"});
 
-        //check password
         const match = await bcrypt.compare(password, foundUser.password);
         if (!match) return res.status(401).json({message: "Mật khẩu không đúng", status: "error"});
 
-        // check status
         if (foundUser.status === 'block') {
             return res.status(403).json({message: "Tài khoản của bạn đã bị khóa", status: "error"});
         }
 
-        // Create Tokens
+
         // Tạo private/public key random ( dùng simple secret )
         const privateKey = crypto.randomBytes(64).toString('hex');
         const publicKey = crypto.randomBytes(64).toString('hex');
@@ -79,7 +75,7 @@ const login = async (req, res) => {
             privateKey
         );
 
-        // Update KeyToken (Lưu refresh token vào DB để check sau này)
+        // Update KeyToken
         await KeyToken.findOneAndUpdate(
             {user: foundUser._id},
             {
@@ -127,7 +123,7 @@ const logout = async (req, res) => {
     }
 };
 
-// --- USER PROFILE & ADDRESS ---
+// USER PROFILE & ADDRESS
 const getUserInfoById = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -203,7 +199,7 @@ const changePassword = async (req, res) => {
     }
 };
 
-// --- ADDRESS MANAGEMENT ---
+//  ADDRESS MANAGEMENT
 
 const addAddress = async (req, res) => {
     try {
@@ -260,8 +256,7 @@ const refreshTokenService = async (req, res) => {
         }
         
         const token = authHeader.split(" ")[1];
-        
-        // Xác thực refresh_token có hợp lệ không
+
         jwt.verify(token, process.env.REFRESH_TOKEN, async (err, user) => {
             if (err) {
                 return res.status(403).json({
@@ -270,7 +265,7 @@ const refreshTokenService = async (req, res) => {
                 });
             }
 
-            // Mở rộng sau: Kiểm tra xem refresh_token gửi lên có khớp với token lưu trong DB không
+
             const checkUser = await User.findById(userId);
             if (!checkUser) {
                 return res.status(404).json({

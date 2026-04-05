@@ -18,24 +18,31 @@ const checkoutReview = async (req, res) => {
         */
 
     if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+      return res
+        .status(400)
+        .json({ message: "Giỏ hàng trống", status: "error" });
     }
 
     const userShop = await Shop.findOne({ owner: userId }).lean();
     if (userShop) {
       const userShopId = userShop._id.toString();
-      const hasOwnProduct = cartItems.some(item => item.shopId.toString() === userShopId);
+      const hasOwnProduct = cartItems.some(
+        (item) => item.shopId.toString() === userShopId,
+      );
       if (hasOwnProduct) {
-        return res.status(400).json({ message: "Bạn không thể mua sản phẩm của chính shop mình", status: "error" });
+        return res.status(400).json({
+          message: "Bạn không thể mua sản phẩm của chính shop mình",
+          status: "error",
+        });
       }
     }
 
-    // --- Bước 3-7: checkAvailability - Kiểm tra tồn kho từng sản phẩm ---
+    //   checkAvailability - Kiểm tra tồn kho từng sản phẩm
     const unavailableItems = [];
     const availableItems = [];
 
     for (const item of cartItems) {
-      // 1. Tìm trong bảng Inventory (ưu tiên)
+      //   Tìm trong bảng Inventory (ưu tiên)
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
         inven_shopId: item.shopId,
@@ -43,7 +50,7 @@ const checkoutReview = async (req, res) => {
 
       let availableStock = inventory ? inventory.inven_stock : 0;
 
-      // 2. Fallback: Nếu không có bản ghi Inventory, kiểm tra trực tiếp trong Product model
+      //   Nếu không có bản ghi Inventory, kiểm tra trực tiếp trong Product model
       if (!inventory) {
         const product = await Product.findById(item.productId);
         if (product) {
@@ -60,7 +67,6 @@ const checkoutReview = async (req, res) => {
           available: availableStock,
         });
       } else {
-        // [Còn hàng] - OK
         availableItems.push(item);
       }
     }
@@ -73,7 +79,7 @@ const checkoutReview = async (req, res) => {
       });
     }
 
-    // --- Bước 8: Logic Tách Đơn (Splitting) - GroupBy shop_id ---
+    //   Tách Đơn (Splitting) - GroupBy shop_id
     const shopOrderMap = {};
     for (const item of availableItems) {
       const key = item.shopId.toString();
@@ -107,13 +113,7 @@ const checkoutReview = async (req, res) => {
   }
 };
 
-// ============================================================
-// [2] CHECKOUT - Đặt hàng
-// POST /api/order/checkout
-// Theo diagram Sequence_MuaHang: bước 9 -> 16
-// ============================================================
 const checkout = async (req, res) => {
-  // Dùng session để đảm bảo tính toàn vẹn dữ liệu (Transaction-like)
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -126,20 +126,29 @@ const checkout = async (req, res) => {
         */
     if (!cartItems || cartItems.length === 0) {
       await session.abortTransaction();
-      return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+      return res
+        .status(400)
+        .json({ message: "Giỏ hàng trống", status: "error" });
     }
 
-    const userShop = await Shop.findOne({ owner: userId }).session(session).lean();
+    const userShop = await Shop.findOne({ owner: userId })
+      .session(session)
+      .lean();
     if (userShop) {
       const userShopId = userShop._id.toString();
-      const hasOwnProduct = cartItems.some(item => item.shopId.toString() === userShopId);
+      const hasOwnProduct = cartItems.some(
+        (item) => item.shopId.toString() === userShopId,
+      );
       if (hasOwnProduct) {
         await session.abortTransaction();
-        return res.status(400).json({ message: "Bạn không thể mua sản phẩm của chính shop mình", status: "error" });
+        return res.status(400).json({
+          message: "Bạn không thể mua sản phẩm của chính shop mình",
+          status: "error",
+        });
       }
     }
 
-    // --- Kiểm tra lại tồn kho lần cuối (race condition prevention) ---
+    // Kiểm tra lại tồn kho lần cuối
     for (const item of cartItems) {
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
@@ -157,12 +166,12 @@ const checkout = async (req, res) => {
         await session.abortTransaction();
         return res.status(400).json({
           message: `Sản phẩm "${item.name}" vừa hết hàng. Vui lòng kiểm tra lại giỏ hàng.`,
-          status: "error"
+          status: "error",
         });
       }
     }
 
-    // --- Bước 8: Tách đơn theo shop (GroupBy shop_id) ---
+    //  Tách đơn theo shop (GroupBy shop_id)
     const shopOrderMap = {};
     for (const item of cartItems) {
       const key = item.shopId.toString();
@@ -176,35 +185,35 @@ const checkout = async (req, res) => {
     const shopOrders = Object.values(shopOrderMap);
     const createdOrderIds = [];
 
-    // --- Bước 9-10: Tạo Order song song cho từng shop (par) ---
+    // Tạo Order song song cho từng shop (par)
     for (const shopOrder of shopOrders) {
       const shopId = shopOrder.shopId.toString();
       let discountAmount = 0;
       let appliedDiscountCode = null;
 
-      // --- Áp dụng Discount (nếu có) ---
+      // Áp dụng Discount (nếu có)
       if (discounts && discounts[shopId]) {
         const { code } = discounts[shopId];
         const foundDiscount = await Discount.findOne({
           discount_code: code,
           discount_shopId: shopId,
-          is_active: true
+          is_active: true,
         }).session(session);
 
         if (foundDiscount) {
           const now = new Date();
-          const isValid = 
-            now >= foundDiscount.discount_start_date && 
+          const isValid =
+            now >= foundDiscount.discount_start_date &&
             now <= foundDiscount.discount_end_date &&
             shopOrder.totalPrice >= foundDiscount.discount_min_order_value &&
             foundDiscount.discount_max_uses > 0;
 
           if (isValid) {
-            // Tính số tiền giảm
-            if (foundDiscount.discount_type === 'fixed_amount') {
+            if (foundDiscount.discount_type === "fixed_amount") {
               discountAmount = foundDiscount.discount_value;
-            } else if (foundDiscount.discount_type === 'percentage') {
-              discountAmount = shopOrder.totalPrice * (foundDiscount.discount_value / 100);
+            } else if (foundDiscount.discount_type === "percentage") {
+              discountAmount =
+                shopOrder.totalPrice * (foundDiscount.discount_value / 100);
             }
 
             // Đảm bảo không giảm quá tổng đơn
@@ -214,7 +223,7 @@ const checkout = async (req, res) => {
             // Cập nhật lượt dùng Discount
             await Discount.findByIdAndUpdate(foundDiscount._id, {
               $inc: { discount_max_uses: -1 },
-              $push: { discount_users_used: userId }
+              $push: { discount_users_used: userId },
             }).session(session);
           }
         }
@@ -228,7 +237,7 @@ const checkout = async (req, res) => {
               totalPrice: shopOrder.totalPrice,
               feeShip: 0,
               totalApplyDiscount: shopOrder.totalPrice - discountAmount,
-              discountCode: appliedDiscountCode
+              discountCode: appliedDiscountCode,
             },
             order_shipping: shipping || {},
             order_payment: payment || { method: "cod" },
@@ -242,29 +251,32 @@ const checkout = async (req, res) => {
       createdOrderIds.push(newOrder[0]._id);
     }
 
-    // --- Bước 11-12: updateInventory(decrement) - $inc: { inven_stock: -1 } ---
+    //  updateInventory(decrement) - $inc: { inven_stock: -1 }
     for (const item of cartItems) {
       const result = await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
         { $inc: { inven_stock: -item.quantity } },
-        { session, new: true }
+        { session, new: true },
       );
 
-      // Nếu không có Inventory record, hãy tạo mới với stock là (product_quantity - requested_quantity)
+      // Nếu không có Inventory record,tạo mới với stock là (product_quantity - requested_quantity)
       if (!result) {
         const product = await Product.findById(item.productId).session(session);
-        await Inventory.create([
-          {
-            inven_productId: item.productId,
-            inven_shopId: item.shopId,
-            inven_stock: (product.product_quantity || 0) - item.quantity,
-            inven_location: 'unKnown'
-          }
-        ], { session });
+        await Inventory.create(
+          [
+            {
+              inven_productId: item.productId,
+              inven_shopId: item.shopId,
+              inven_stock: (product.product_quantity || 0) - item.quantity,
+              inven_location: "unKnown",
+            },
+          ],
+          { session },
+        );
       }
     }
 
-    // --- Bước 13-14: clearCart - Xóa các sản phẩm đã mua khỏi giỏ ---
+    //clearCart
     const purchasedProductIds = cartItems.map((i) => i.productId.toString());
     await Cart.findOneAndUpdate(
       { cart_userId: userId, cart_state: "active" },
@@ -279,7 +291,7 @@ const checkout = async (req, res) => {
 
     await session.commitTransaction();
 
-    // --- Bước 15-16: Trả về order_ids cho Frontend ---
+    // Trả về order_ids cho Frontend
     return res.status(201).json({
       message: "Đặt hàng thành công! Cảm ơn bạn đã mua hàng.",
       status: "success",
@@ -298,10 +310,6 @@ const checkout = async (req, res) => {
   }
 };
 
-// ============================================================
-// [3] GET USER ORDERS - Lịch sử đơn hàng của người mua
-// GET /api/order/my-orders?status=pending
-// ============================================================
 const getMyOrders = async (req, res) => {
   try {
     const userId = req.headers["x-client-id"];
@@ -332,11 +340,6 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-// ============================================================
-// [4] GET SHOP ORDERS - Shop xem đơn hàng cần xử lý
-// GET /api/order/shop/orders?status=pending
-// Theo diagram Sequence_XuLyDonHangCuaShop: bước 2 -> 4
-// ============================================================
 const getShopOrders = async (req, res) => {
   try {
     const shopId = req.query.shopId || req.headers["x-shop-id"];
@@ -373,16 +376,10 @@ const getShopOrders = async (req, res) => {
   }
 };
 
-// ============================================================
-// [5] UPDATE ORDER STATUS - Shop xác nhận / cập nhật đơn hàng
-// PATCH /api/order/status
-// Theo diagram Sequence_XuLyDonHangCuaShop: bước 6 -> 8
-// ============================================================
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;
 
-    // Trạng thái hợp lệ và thứ tự chuyển đổi được phép
     const validTransitions = {
       pending: ["confirmed", "cancelled"],
       confirmed: ["shipping", "cancelled"],
@@ -393,7 +390,9 @@ const updateOrderStatus = async (req, res) => {
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng", status: "error" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy đơn hàng", status: "error" });
     }
 
     const allowedNext = validTransitions[order.order_status];
@@ -411,8 +410,6 @@ const updateOrderStatus = async (req, res) => {
       { new: true },
     );
 
-    // (Tùy chọn) Gửi Noti cho User - có thể mở rộng tích hợp socket.io/email sau
-
     return res.status(200).json({
       message: `Cập nhật trạng thái đơn hàng thành công: ${status}`,
       status: "success",
@@ -425,10 +422,6 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// ============================================================
-// [6] CANCEL ORDER - User hủy đơn hàng
-// PATCH /api/order/:orderId/cancel
-// ============================================================
 const cancelOrder = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -444,7 +437,9 @@ const cancelOrder = async (req, res) => {
 
     if (!order) {
       await session.abortTransaction();
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng", status: "error" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy đơn hàng", status: "error" });
     }
 
     // Chỉ cho hủy khi đang ở trạng thái pending
@@ -452,15 +447,14 @@ const cancelOrder = async (req, res) => {
       await session.abortTransaction();
       return res.status(400).json({
         message: `Không thể hủy đơn hàng đang ở trạng thái [${order.order_status}]`,
-        status: "error"
+        status: "error",
       });
     }
 
-    // Cập nhật trạng thái đơn
     order.order_status = "cancelled";
     await order.save({ session });
 
-    // Hoàn lại tồn kho (rollback inventory)
+    // Hoàn lại tồn kho
     for (const item of order.order_products) {
       await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
@@ -489,36 +483,41 @@ const cancelOrder = async (req, res) => {
 const getShopDashboardStats = async (req, res) => {
   try {
     const shopId = req.query.shopId || req.headers["x-shop-id"];
-    
+
     if (!shopId) {
       return res.status(400).json({ message: "Thiếu shopId", status: "error" });
     }
 
-    // 1. Total Products
-    const totalProducts = await Product.countDocuments({ product_shop: shopId });
-
-    // 2. Pending Orders
-    const pendingOrders = await Order.countDocuments({
-      "order_products.shopId": shopId,
-      order_status: "pending"
+    const totalProducts = await Product.countDocuments({
+      product_shop: shopId,
     });
 
-    // 3. Total Revenue (from delivered orders)
+    const pendingOrders = await Order.countDocuments({
+      "order_products.shopId": shopId,
+      order_status: "pending",
+    });
+
     const deliveredOrders = await Order.find({
       "order_products.shopId": shopId,
-      order_status: "delivered"
+      order_status: "delivered",
     });
 
     const totalRevenue = deliveredOrders.reduce((sum, order) => {
       // If the order has products from MULTIPLE shops, we only want the share for THIS shop
-      const shopItems = order.order_products.filter(item => item.shopId.toString() === shopId.toString());
-      const shopItemTotal = shopItems.reduce((s, i) => s + (i.price * i.quantity), 0);
-      
+      const shopItems = order.order_products.filter(
+        (item) => item.shopId.toString() === shopId.toString(),
+      );
+      const shopItemTotal = shopItems.reduce(
+        (s, i) => s + i.price * i.quantity,
+        0,
+      );
+
       // Calculate proportional discount if any
       const orderTotal = order.order_checkout.totalPrice || 1;
-      const discountRatio = (order.order_checkout.totalApplyDiscount || orderTotal) / orderTotal;
-      
-      return sum + (shopItemTotal * discountRatio);
+      const discountRatio =
+        (order.order_checkout.totalApplyDiscount || orderTotal) / orderTotal;
+
+      return sum + shopItemTotal * discountRatio;
     }, 0);
 
     return res.status(200).json({
@@ -527,11 +526,13 @@ const getShopDashboardStats = async (req, res) => {
       metadata: {
         totalProducts,
         pendingOrders,
-        totalRevenue: Math.round(totalRevenue)
-      }
+        totalRevenue: Math.round(totalRevenue),
+      },
     });
   } catch (error) {
-    return res.status(500).json({ message: "Server error", status: "error", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Server error", status: "error", error: error.message });
   }
 };
 
@@ -542,5 +543,5 @@ export {
   getShopOrders,
   updateOrderStatus,
   cancelOrder,
-  getShopDashboardStats
+  getShopDashboardStats,
 };

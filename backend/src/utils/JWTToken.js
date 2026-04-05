@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-// --- UTILS FUNCTION ---
+
 // dùng tạo ra cùng lúc 2 loại token
 
 const genneralAccesToken = async (payload) => {
