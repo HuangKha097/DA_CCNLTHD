@@ -32,14 +32,12 @@ export const authenToken = async (req, res, next) => {
                 error: 'User is logged out. Token is no longer valid.',
             });
         }
-        //  Xác thực signature và hạn sử dụng của token
         jwt.verify(token, process.env.JWT_SECRET || 'secretKey', (err, userDecoded) => {
             if (err) {
                 return res.status(403).json({
                     error: 'Token is not valid or expired',
                 });
             }
-            // Lưu thông tin user và keyStore vào request để dùng ở các controller sau
             req.user = userDecoded;
             req.keyStore = keyStore; // Lưu thêm để controller biết token thuộc về user nào
             next();
