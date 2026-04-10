@@ -491,10 +491,6 @@ const getShopDashboardStats = async (req, res) => {
     const totalProducts = await Product.countDocuments({
       product_shop: shopId,
     });
-    const totalProducts = await Product.countDocuments({
-      product_shop: shopId,
-    });
-
     const pendingOrders = await Order.countDocuments({
       "order_products.shopId": shopId,
       order_status: "pending",
