@@ -12,26 +12,53 @@
 #Cấu trúc thư mục:
 
 ```
-DA_CCNLTHD/               
+DA_CCNLTHD/                
 ├── backend/      
 │       ├── package.json        
+│       ├── package-lock.json
 │       ├── .env                <-- Cấu hình biến môi trường
-│       ├── .gitignore         
+│       ├── .gitignore          
 │       └── src/                <-- Source code chính
-│           ├── index.js       // File chạy chính (Entry point)
-│           ├── configs/        // Cấu hình DB, Cloudinary
-|           |      ├── db.js
-|           └── middlewares/ // Xử lý Authentication
-│           │     ├── AuthenToken.js
-│           └── controllers/ // Xử lý request
-│           │     ├── shop.controller.js
-│           │     ├── product.controller.js
-│           │     └── checkout.controller.js
-│           ├── models/      // Mongoose Schemas
-│           ├── routes/      // Khai báo API
-│           └── utils/       // Hàm tiện ích
-└── frontend/               <-- (Dự kiến cho React FE)
-
+│           ├── index.js        // File chạy chính (Entry point)
+│           ├── jwt.http        // File test API trực tiếp
+│           ├── configs/        // Cấu hình hệ thống (Database...)
+│           │      └── db.js
+│           ├── middlewares/    // Xử lý trung gian (Auth, Validate...)
+│           │      └── AuthenToken.js
+│           ├── utils/          // Các hàm tiện ích dùng chung
+│           │      └── JWTToken.js
+│           ├── controllers/    // Xử lý logic request từ Client
+│           │      ├── AdminController.js
+│           │      ├── CartController.js
+│           │      ├── CoinController.js
+│           │      ├── DiscountController.js
+│           │      ├── OrderController.js
+│           │      ├── ProductController.js
+│           │      ├── ReviewController.js
+│           │      ├── ShopController.js
+│           │      └── UserController.js
+│           ├── models/         // Định nghĩa Database Schema (Mongoose)
+│           │      ├── Cart.js
+│           │      ├── Discount.js
+│           │      ├── Inventory.js
+│           │      ├── KeyToken.js
+│           │      ├── Order.js
+│           │      ├── Product.js
+│           │      ├── Review.js
+│           │      ├── Shop.js
+│           │      └── User.js
+│           └── routes/         // Khai báo các Endpoint API
+│                  ├── index.js // Router tổng
+│                  ├── AdminRoutes.js
+│                  ├── CartRoutes.js
+│                  ├── CoinRoutes.js
+│                  ├── DiscountRoutes.js
+│                  ├── OrderRoutes.js
+│                  ├── ProductRoutes.js
+│                  ├── ReviewRoutes.js
+│                  ├── ShopRoutes.js
+│                  └── UserRoutes.js
+└── frontend/                   <-- (Dự kiến cho React FE)
 ```
 # Hướng Dẫn Cài Đặt Và Chạy Backend Dự Án Nhóm 20
 
