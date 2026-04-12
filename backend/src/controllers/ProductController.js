@@ -1,5 +1,6 @@
 import Product from "../models/Product.js";
 import Shop from "../models/Shop.js";
+import Inventory from "../models/Inventory.js";
 
 const createProduct = async (req, res) => {
     try {
@@ -8,7 +9,6 @@ const createProduct = async (req, res) => {
             product_name,
             product_price,
             product_description,
-            product_quantity,
             product_type,
             product_attributes,
             product_thumb,
@@ -42,7 +42,6 @@ const createProduct = async (req, res) => {
             product_name,
             product_price,
             product_description,
-            product_quantity,
             product_type,
             product_attributes,
             product_thumb,
@@ -183,6 +182,20 @@ const getDraftProducts = async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: shopId
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         const total = await Product.countDocuments({
             product_shop: shopId,
             isPublished: false
@@ -192,7 +205,7 @@ const getDraftProducts = async (req, res) => {
             message: "Lấy danh sách draft thành công",
             status: 'success',
             metadata: {
-                products,
+                products: productsWithStock,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -223,6 +236,20 @@ const getPublishedProducts = async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: shopId
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         const total = await Product.countDocuments({
             product_shop: shopId,
             isPublished: true
@@ -232,7 +259,7 @@ const getPublishedProducts = async (req, res) => {
             message: "Lấy danh sách sản phẩm đang bán thành công",
             status: 'success',
             metadata: {
-                products,
+                products: productsWithStock,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -278,11 +305,25 @@ const getAllShopProducts = async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: shopId
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         return res.status(200).json({
             status: 'success',
             message: "Lấy tất cả sản phẩm của shop thành công",
             metadata: {
-                products
+                products: productsWithStock
             }
         });
     } catch (error) {
@@ -309,13 +350,27 @@ const getAllProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: product.product_shop._id
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         const total = await Product.countDocuments({ isPublished: true, product_shop: { $in: activeShopIds } });
 
         return res.status(200).json({
             message: "Lấy danh sách sản phẩm thành công",
             status: 'success',
             metadata: {
-                products,
+                products: productsWithStock,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -354,10 +409,20 @@ const getProductDetail = async (req, res) => {
             });
         }
 
+        // Lấy inventory khi hiển thị chi tiết sản phẩm
+        const inventory = await Inventory.findOne({
+            inven_productId: productId,
+            inven_shopId: product.product_shop._id
+        }).select('inven_stock inven_shopId').lean();
+
         return res.status(200).json({
             message: "Lấy chi tiết sản phẩm thành công",
             status: 'success',
-            metadata: product
+            metadata: {
+                ...product,
+                stock: inventory?.inven_stock || 0,
+                shopId: inventory?.inven_shopId || product.product_shop._id
+            }
         });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
@@ -392,10 +457,24 @@ const getRelatedProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
+        // Lấy inventory cho mỗi product liên quan
+        const relatedWithStock = await Promise.all(
+            related.map(async (prod) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: prod._id,
+                    inven_shopId: prod.product_shop._id
+                }).select('inven_stock').lean();
+                return {
+                    ...prod,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         return res.status(200).json({
             message: "Lấy danh sách sản phẩm liên quan thành công",
             status: 'success',
-            metadata: related
+            metadata: relatedWithStock
         });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
@@ -437,6 +516,20 @@ const searchProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: product.product_shop._id
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         const total = await Product.countDocuments({
             isPublished: true,
             product_shop: { $in: activeShopIds },
@@ -451,7 +544,7 @@ const searchProducts = async (req, res) => {
             status: 'success',
             metadata: {
                 keyword,
-                products,
+                products: productsWithStock,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -517,6 +610,20 @@ const filterProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
+        // Lấy inventory cho mỗi product
+        const productsWithStock = await Promise.all(
+            products.map(async (product) => {
+                const inventory = await Inventory.findOne({
+                    inven_productId: product._id,
+                    inven_shopId: product.product_shop._id
+                }).select('inven_stock').lean();
+                return {
+                    ...product,
+                    stock: inventory?.inven_stock || 0
+                };
+            })
+        );
+
         const total = await Product.countDocuments(filter);
 
         return res.status(200).json({
@@ -524,7 +631,7 @@ const filterProducts = async (req, res) => {
             status: 'success',
             metadata: {
                 filters: { minPrice, maxPrice, product_type, minRating, sort },
-                products,
+                products: productsWithStock,
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),

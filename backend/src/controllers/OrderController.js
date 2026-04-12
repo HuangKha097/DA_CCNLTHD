@@ -30,12 +30,12 @@ const checkoutReview = async (req, res) => {
       }
     }
 
-    //   checkAvailability - Kiểm tra tồn kho từng sản phẩm
+    //   checkAvailability - Kiểm tra tồn kho từng sản phẩm từ Inventory
     const unavailableItems = [];
     const availableItems = [];
 
     for (const item of cartItems) {
-      //   Tìm trong bảng Inventory (ưu tiên)
+      //   Tìm trong bảng Inventory
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
         inven_shopId: item.shopId,
@@ -43,13 +43,6 @@ const checkoutReview = async (req, res) => {
 
       let availableStock = inventory ? inventory.inven_stock : 0;
 
-      //   Nếu không có bản ghi Inventory, kiểm tra trực tiếp trong Product model
-      if (!inventory) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          availableStock = product.product_quantity || 0;
-        }
-      }
 
       // [Hết hàng] - Stock < request quantity
       if (availableStock < item.quantity) {
@@ -134,7 +127,7 @@ const checkout = async (req, res) => {
       }
     }
 
-    // Kiểm tra lại tồn kho lần cuối
+    // Kiểm tra lại tồn kho lần cuối từ Inventory
     for (const item of cartItems) {
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
@@ -143,10 +136,6 @@ const checkout = async (req, res) => {
 
       let availableStock = inventory ? inventory.inven_stock : 0;
 
-      if (!inventory) {
-        const product = await Product.findById(item.productId).session(session);
-        if (product) availableStock = product.product_quantity || 0;
-      }
 
       if (availableStock < item.quantity) {
         await session.abortTransaction();
@@ -236,7 +225,7 @@ const checkout = async (req, res) => {
       createdOrderIds.push(newOrder[0]._id);
     }
 
-    //  updateInventory(decrement) - $inc: { inven_stock: -1 }
+    //  updateInventory(decrement) - $inc: { inven_stock: -quantity }
     for (const item of cartItems) {
       const result = await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
@@ -244,14 +233,13 @@ const checkout = async (req, res) => {
         { session, new: true }
       );
 
-      // Nếu không có Inventory record,tạo mới với stock là (product_quantity - requested_quantity)
+      // Nếu không có Inventory record, tạo mới với stock
       if (!result) {
-        const product = await Product.findById(item.productId).session(session);
         await Inventory.create([
           {
             inven_productId: item.productId,
             inven_shopId: item.shopId,
-            inven_stock: (product.product_quantity || 0) - item.quantity,
+            inven_stock: -item.quantity,
             inven_location: 'unKnown'
           }
         ], { session });
@@ -435,7 +423,7 @@ const cancelOrder = async (req, res) => {
     order.order_status = "cancelled";
     await order.save({ session });
 
-    // Hoàn lại tồn kho
+    // Hoàn lại tồn kho khi hủy đơn
     for (const item of order.order_products) {
       await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
