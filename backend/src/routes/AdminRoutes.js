@@ -5,11 +5,11 @@ import { authenToken, isAdmin } from "../middlewares/AuthenToken.js";
 const router = express.Router();
 
 router.get('/user', authenToken, isAdmin, getAllUsers);
-router.delete('/user/:userId', authenToken, isAdmin, banUser);
+router.patch('/user/:userId', authenToken, isAdmin, banUser);
 router.put('/user/:userId/unban', authenToken, isAdmin, unbanUser);
 
 router.get('/shop', authenToken, isAdmin, getAllShops);
-router.delete('/shop/:shopId', authenToken, isAdmin, banShop);
+router.patch('/shop/:shopId', authenToken, isAdmin, banShop);
 router.put('/shop/:shopId/unban', authenToken, isAdmin, unbanShop);
 
 router.get('/shop/:shopId/products', authenToken, isAdmin, getShopProductsAdmin);
