@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import KeyToken from "../models/KeyToken.js";
+import Shop from "../models/Shop.js";
+
 
 export const authenToken = async (req, res, next) => {
     try {
@@ -38,6 +40,7 @@ export const authenToken = async (req, res, next) => {
                     error: 'Token is not valid or expired',
                 });
             }
+            console.log(userDecoded)
             req.user = userDecoded;
             req.keyStore = keyStore; // Lưu thêm để controller biết token thuộc về user nào
             next();
@@ -62,6 +65,46 @@ export const isAdmin = async (req, res, next) => {
     } catch (error) {
         return res.status(500).json({
             error: 'Server error during admin verification',
+            details: error.message
+        });
+    }
+};
+export const isCurrentUser = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user.userId) {
+            return res.status(401).json({
+                error: 'Access denied. User not authenticated.',
+            });
+        }
+
+        // Get shopId from request body or params
+        const shopId = req.body.shopId || req.params.shopId;
+        if (!shopId) {
+            return res.status(400).json({
+                error: 'Thiếu shopId.',
+            });
+        }
+
+        // Find shop and verify owner
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            return res.status(404).json({
+                error: 'Không tìm thấy gian hàng.',
+            });
+        }
+
+        // Convert both to string for comparison
+        if (shop.owner.toString() !== user.userId.toString()) {
+            return res.status(403).json({
+                error: 'Bạn chỉ có thể sửa shop của mình.',
+            });
+        }
+
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            error: 'Server error during shop verification',
             details: error.message
         });
     }
