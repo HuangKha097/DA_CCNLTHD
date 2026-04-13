@@ -37,7 +37,8 @@ const banShop = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { shopId, reason } = req.body || req.params;
+        const shopId = req.body?.shopId || req.params?.shopId;
+        const reason = req.body?.reason;
         
         const shop = await Shop.findById(shopId).session(session);
         if (!shop) {
@@ -107,10 +108,23 @@ const banShop = async (req, res) => {
 
 const unbanShop = async (req, res) => {
     try {
-        const { shopId } = req.body || req.params;
+        const shopId = req.body?.shopId || req.params?.shopId;
+        console.log("Received shopId:", shopId);
+        console.log("From body:", req.body?.shopId);
+        console.log("From params:", req.params?.shopId);
+
         const shop = await Shop.findById(shopId);
+        console.log("Found shop:", shop);
+        
         if (!shop) {
-            return res.status(404).json({ message: "Shop không tồn tại", status: "error" });
+            return res.status(404).json({ 
+                message: "Shop không tồn tại", 
+                status: "error",
+                debug: {
+                    shopId: shopId,
+                    searchedIn: "MongoDB"
+                }
+            });
         }
 
         const updatedShop = await Shop.findByIdAndUpdate(
@@ -129,6 +143,7 @@ const unbanShop = async (req, res) => {
             }
         });
     } catch (error) {
+        console.error("Unban shop error:", error);
         return res.status(500).json({ message: "Server error", status: "error", error: error.message });
     }
 };

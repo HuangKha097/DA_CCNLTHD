@@ -107,6 +107,7 @@ export const isCurrentUser = async (req, res, next) => {
 export const checkShopNotBanned = async (req, res, next) => {
     try {
         const shopId = req.body.shopId || req.params.shopId || req.headers["x-shop-id"];
+
         if (!shopId) {
             return next();
         }
