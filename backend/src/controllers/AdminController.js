@@ -113,6 +113,7 @@ const unbanShop = async (req, res) => {
         console.log("From body:", req.body?.shopId);
         console.log("From params:", req.params?.shopId);
 
+
         const shop = await Shop.findById(shopId);
         console.log("Found shop:", shop);
         
