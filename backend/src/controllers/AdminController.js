@@ -8,11 +8,11 @@ import mongoose from "mongoose";
 const banUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const pendingOrders = await Order.find({ order_userId: userId, order_status: 'pending' });
         
-        if (pendingOrders.length > 0) {
-            await Order.updateMany({ order_userId: userId, order_status: 'pending' }, { order_status: 'cancelled' });
-        }
+        await Order.updateMany(
+            { order_userId: userId, order_status: { $in: ['pending', 'confirmed'] } }, 
+            { order_status: 'cancelled' }
+        );
         
         await User.findByIdAndUpdate(userId, { status: 'block' });
         await KeyToken.deleteMany({ user: userId });
@@ -37,17 +37,7 @@ const banShop = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { shopId } = req.params;
-        
-        const pendingOrdersCount = await Order.countDocuments({ 
-            "order_products.shopId": shopId, 
-            order_status: 'pending' 
-        }).session(session);
-        
-        if (pendingOrdersCount > 0) {
-            await session.abortTransaction();
-            return res.status(400).json({ message: "Shop còn đơn hàng chưa xử lý, không thể khoá!", status: "error" });
-        }
+        const { shopId, reason } = req.body || req.params;
         
         const shop = await Shop.findById(shopId).session(session);
         if (!shop) {
@@ -55,11 +45,58 @@ const banShop = async (req, res) => {
             return res.status(404).json({ message: "Shop không tồn tại", status: "error" });
         }
         
-        await Shop.findByIdAndUpdate(shopId, { status: 'banned', verified: false }, { session });
-        await KeyToken.deleteMany({ user: shop.owner }).session(session);
+        const pendingOrders = await Order.find({
+            "order_products.shopId": shopId,
+            order_status: { $in: ["pending", "confirmed", "shipping"] }
+        }).session(session);
+
+        let cancelledOrderCount = 0;
+        let ordersStillShipping = [];
+
+        for (const order of pendingOrders) {
+            if (order.order_status === "pending" || order.order_status === "confirmed") {
+                await Order.findByIdAndUpdate(
+                    order._id,
+                    { order_status: "cancelled" },
+                    { session }
+                );
+                cancelledOrderCount++;
+            } else if (order.order_status === "shipping") {
+                ordersStillShipping.push({
+                    _id: order._id,
+                    order_status: "shipping",
+                    note: "Đơn đang vận chuyển, shop vẫn có quyền cập nhật status"
+                });
+            }
+        }
+
+        const updatedShop = await Shop.findByIdAndUpdate(
+            shopId,
+            { status: 'banned', verified: false },
+            { new: true, session }
+        );
         
+        await KeyToken.deleteMany({ user: shop.owner }).session(session);
         await session.commitTransaction();
-        return res.status(200).json({ message: "Đã vô hiệu hóa Shop", status: "success" });
+
+        return res.status(200).json({
+            message: "Ban shop thành công",
+            status: "success",
+            metadata: {
+                shopId: updatedShop._id,
+                shopName: updatedShop.name,
+                newStatus: updatedShop.status,
+                reason: reason || "Không có lý do",
+                orderHandling: {
+                    cancelledOrders: cancelledOrderCount,
+                    ordersStillShipping: ordersStillShipping.length,
+                    ordersStillShippingList: ordersStillShipping,
+                    note: ordersStillShipping.length > 0 
+                        ? "Shop bị ban nhưng vẫn có đơn đang vận chuyển. Shop chỉ có quyền cập nhật trạng thái đơn hàng." 
+                        : "Tất cả đơn hàng pending/confirmed đã được hủy."
+                }
+            }
+        });
     } catch (error) {
         await session.abortTransaction();
         return res.status(500).json({ message: "Server error", status: "error", error: error.message });
@@ -70,9 +107,27 @@ const banShop = async (req, res) => {
 
 const unbanShop = async (req, res) => {
     try {
-        const { shopId } = req.params;
-        await Shop.findByIdAndUpdate(shopId, { status: 'active', verified: true });
-        return res.status(200).json({ message: "Đã mở khóa Shop thành công", status: "success" });
+        const { shopId } = req.body || req.params;
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            return res.status(404).json({ message: "Shop không tồn tại", status: "error" });
+        }
+
+        const updatedShop = await Shop.findByIdAndUpdate(
+            shopId,
+            { status: 'active', verified: true },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            message: "Đã mở khóa Shop thành công",
+            status: "success",
+            metadata: {
+                shopId: updatedShop._id,
+                shopName: updatedShop.name,
+                newStatus: updatedShop.status
+            }
+        });
     } catch (error) {
         return res.status(500).json({ message: "Server error", status: "error", error: error.message });
     }

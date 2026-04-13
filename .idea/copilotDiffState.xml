@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="/AdminRoutes (snapshot).js">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="/AdminRoutes (snapshot).js" />
+              <option name="originalContent" value="import express from &quot;express&quot;;&#10;import { banUser, unbanUser, banShop, unbanShop, getAllUsers, getAllShops, getShopProductsAdmin, getUserOrdersAdmin } from &quot;../controllers/AdminController.js&quot;;&#10;import { authenToken, isAdmin } from &quot;../middlewares/AuthenToken.js&quot;;&#10;&#10;const router = express.Router();&#10;&#10;router.get('/user', authenToken, isAdmin, getAllUsers);&#10;router.patch('/user/:userId', authenToken, isAdmin, banUser);&#10;router.put('/user/:userId/unban', authenToken, isAdmin, unbanUser);&#10;&#10;router.get('/shop', authenToken, isAdmin, getAllShops);&#10;router.patch('/shop/:shopId', authenToken, isAdmin, banShop);&#10;router.put('/shop/:shopId/unban', authenToken, isAdmin, unbanShop);&#10;&#10;router.get('/shop/:shopId/products', authenToken, isAdmin, getShopProductsAdmin);&#10;router.get('/user/:userId/orders', authenToken, isAdmin, getUserOrdersAdmin);&#10;&#10;export default router;&#10;" />
+              <option name="updatedContent" value="import express from &quot;express&quot;;&#13;&#10;import { banUser, unbanUser, banShop, unbanShop, getAllUsers, getAllShops, getShopProductsAdmin, getUserOrdersAdmin } from &quot;../controllers/AdminController.js&quot;;&#13;&#10;import { authenToken, isAdmin } from &quot;../middlewares/AuthenToken.js&quot;;&#13;&#10;&#13;&#10;const router = express.Router();&#13;&#10;&#13;&#10;router.get('/user', authenToken, isAdmin, getAllUsers);&#13;&#10;router.patch('/user/:userId', authenToken, isAdmin, banUser);&#13;&#10;router.put('/user/:userId/unban', authenToken, isAdmin, unbanUser);&#13;&#10;&#13;&#10;router.get('/shop', authenToken, isAdmin, getAllShops);&#13;&#10;router.patch('/shop/:shopId', authenToken, isAdmin, banShop);&#13;&#10;router.post('/shop/ban', authenToken, isAdmin, banShop); // Alternative endpoint with body support&#13;&#10;router.put('/shop/:shopId/unban', authenToken, isAdmin, unbanShop);&#13;&#10;router.post('/shop/unban', authenToken, isAdmin, unbanShop); // Alternative endpoint with body support&#13;&#10;&#13;&#10;router.get('/shop/:shopId/products', authenToken, isAdmin, getShopProductsAdmin);&#13;&#10;router.get('/user/:userId/orders', authenToken, isAdmin, getUserOrdersAdmin);&#13;&#10;&#13;&#10;export default router;&#13;&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

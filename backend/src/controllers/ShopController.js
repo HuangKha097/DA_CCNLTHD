@@ -2,7 +2,9 @@ import Shop from "../models/Shop.js";
 import User from "../models/User.js";
 import Product from "../models/Product.js";
 import Review from "../models/Review.js";
+import Order from "../models/Order.js";
 import bcrypt from "bcrypt";
+import mongoose from "mongoose";
 
 const signUp = async (req, res) => {
   try {
@@ -133,8 +135,8 @@ const showAllInfo = async (req, res) => {
         totalReviews,
         avgRating: parseFloat(avgRating),
         joinDate: getInfo.createdAt,
-        responseRate: "98%", // Mocking this since no message system yet
-        followers: "1.2k" // Mocking this since no follow system yet
+        responseRate: "98%", // dữ liệu mocking
+        followers: "1.2k" // dữ liệu mocking
       }
     };
 

@@ -5,7 +5,6 @@ import Shop from "../models/Shop.js";
 
 export const authenToken = async (req, res, next) => {
     try {
-        //Client phải gửi ID của user lên
         const userId = req.headers['x-client-id'];
         if (!userId) {
             return res.status(401).json({
@@ -19,16 +18,15 @@ export const authenToken = async (req, res, next) => {
                 error: 'Access denied. No token provided.',
             });
         }
-        // token từ chuỗi "Bearer [token]"
+
         const token = authorizationHeader.split(' ')[1];
         if (!token) {
             return res.status(401).json({
                 error: 'Invalid token format',
             });
         }
-        // check user có còn phiên đăng nhập không
+
         const keyStore = await KeyToken.findOne({user: userId});
-        //không tìm thấy keyStore =->  user đã Logout
         if (!keyStore) {
             return res.status(401).json({
                 error: 'User is logged out. Token is no longer valid.',
@@ -40,9 +38,8 @@ export const authenToken = async (req, res, next) => {
                     error: 'Token is not valid or expired',
                 });
             }
-            console.log(userDecoded)
             req.user = userDecoded;
-            req.keyStore = keyStore; // Lưu thêm để controller biết token thuộc về user nào
+            req.keyStore = keyStore;
             next();
         });
     } catch (error) {
@@ -78,7 +75,6 @@ export const isCurrentUser = async (req, res, next) => {
             });
         }
 
-        // Get shopId from request body or params
         const shopId = req.body.shopId || req.params.shopId;
         if (!shopId) {
             return res.status(400).json({
@@ -86,7 +82,6 @@ export const isCurrentUser = async (req, res, next) => {
             });
         }
 
-        // Find shop and verify owner
         const shop = await Shop.findById(shopId);
         if (!shop) {
             return res.status(404).json({
@@ -94,7 +89,6 @@ export const isCurrentUser = async (req, res, next) => {
             });
         }
 
-        // Convert both to string for comparison
         if (shop.owner.toString() !== user.userId.toString()) {
             return res.status(403).json({
                 error: 'Bạn chỉ có thể sửa shop của mình.',
@@ -109,3 +103,35 @@ export const isCurrentUser = async (req, res, next) => {
         });
     }
 };
+
+export const checkShopNotBanned = async (req, res, next) => {
+    try {
+        const shopId = req.body.shopId || req.params.shopId || req.headers["x-shop-id"];
+        if (!shopId) {
+            return next();
+        }
+
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            return res.status(404).json({
+                error: 'Không tìm thấy gian hàng.',
+            });
+        }
+
+        if (shop.status === 'banned') {
+            return res.status(403).json({
+                message: "Shop bị khoá, không thể thực hiện tác vụ này",
+                status: "error",
+                shopStatus: shop.status
+            });
+        }
+
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            error: 'Server error during shop ban verification',
+            details: error.message
+        });
+    }
+};
+

@@ -15,7 +15,7 @@ import {
     searchProducts,
     filterProducts
 } from "../controllers/ProductController.js";
-import { authenToken, isCurrentUser } from "../middlewares/AuthenToken.js";
+import { authenToken, isCurrentUser, checkShopNotBanned } from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
@@ -28,12 +28,12 @@ router.get('/related/:productId', getRelatedProducts);
 router.get('/published/all/:shopId', getPublishedProducts); // Public access for shop page
 
 //  PRIVATE ROUTES (Shop/Vendor)
-router.post('/create', authenToken, isCurrentUser, createProduct);
-router.put('/:productId', authenToken, isCurrentUser, updateProduct);
-router.delete('/:productId', authenToken, isCurrentUser, deleteProduct);
+router.post('/create', authenToken, isCurrentUser, checkShopNotBanned, createProduct);
+router.put('/:productId', authenToken, isCurrentUser, checkShopNotBanned, updateProduct);
+router.delete('/:productId', authenToken, isCurrentUser, checkShopNotBanned, deleteProduct);
 
-router.patch('/publish/:productId', authenToken, isCurrentUser, publishProduct);
-router.patch('/unpublish/:productId', authenToken, isCurrentUser, unpublishProduct);
+router.patch('/publish/:productId', authenToken, isCurrentUser, checkShopNotBanned, publishProduct);
+router.patch('/unpublish/:productId', authenToken, isCurrentUser, checkShopNotBanned, unpublishProduct);
 
 router.get('/drafts/:shopId', authenToken, isCurrentUser, getDraftProducts);
 router.get('/published/:shopId', authenToken, isCurrentUser, getPublishedProducts);

@@ -10,15 +10,22 @@ const checkoutReview = async (req, res) => {
   try {
     const userId = req.headers["x-client-id"];
     const { cartItems } = req.body;
-    /*
-            cartItems: [
-                { productId, shopId, quantity, name, price },
-                ...
-            ]
-        */
 
     if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+    }
+
+    const bannedShops = await Shop.find({
+      _id: { $in: cartItems.map(item => item.shopId) },
+      status: 'banned'
+    }).lean();
+
+    if (bannedShops.length > 0) {
+      return res.status(403).json({
+        message: `Không thể mua sản phẩm từ shop bị ban: ${bannedShops.map(s => s.name).join(', ')}`,
+        status: "error",
+        bannedShops: bannedShops.map(s => ({ _id: s._id, name: s.name }))
+      });
     }
 
     const userShop = await Shop.findOne({ owner: userId }).lean();
@@ -30,12 +37,10 @@ const checkoutReview = async (req, res) => {
       }
     }
 
-    //   checkAvailability - Kiểm tra tồn kho từng sản phẩm từ Inventory
     const unavailableItems = [];
     const availableItems = [];
 
     for (const item of cartItems) {
-      //   Tìm trong bảng Inventory
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
         inven_shopId: item.shopId,
@@ -43,8 +48,6 @@ const checkoutReview = async (req, res) => {
 
       let availableStock = inventory ? inventory.inven_stock : 0;
 
-
-      // [Hết hàng] - Stock < request quantity
       if (availableStock < item.quantity) {
         unavailableItems.push({
           productId: item.productId,
@@ -65,7 +68,6 @@ const checkoutReview = async (req, res) => {
       });
     }
 
-    //   Tách Đơn (Splitting) - GroupBy shop_id
     const shopOrderMap = {};
     for (const item of availableItems) {
       const key = item.shopId.toString();
@@ -87,7 +89,7 @@ const checkoutReview = async (req, res) => {
       message: "Kiểm tra giỏ hàng thành công",
       status: "success",
       metadata: {
-        shopOrders, // Đơn đã được tách theo shop
+        shopOrders,
         grandTotal,
         itemCount: availableItems.length,
       },
@@ -106,15 +108,24 @@ const checkout = async (req, res) => {
   try {
     const userId = req.headers["x-client-id"];
     const { cartItems, shipping, payment, discounts } = req.body;
-    /*
-            cartItems: [{ productId, shopId, quantity, name, price }]
-            shipping: { street, city, country, ... }
-            payment: { method: 'cod' | 'credit' }
-        */
 
     if (!cartItems || cartItems.length === 0) {
       await session.abortTransaction();
       return res.status(400).json({ message: "Giỏ hàng trống", status: "error" });
+    }
+
+    const bannedShops = await Shop.find({
+      _id: { $in: cartItems.map(item => item.shopId) },
+      status: 'banned'
+    }).session(session).lean();
+
+    if (bannedShops.length > 0) {
+      await session.abortTransaction();
+      return res.status(403).json({
+        message: `Không thể mua sản phẩm từ shop bị ban: ${bannedShops.map(s => s.name).join(', ')}`,
+        status: "error",
+        bannedShops: bannedShops.map(s => ({ _id: s._id, name: s.name }))
+      });
     }
 
     const userShop = await Shop.findOne({ owner: userId }).session(session).lean();
@@ -127,7 +138,6 @@ const checkout = async (req, res) => {
       }
     }
 
-    // Kiểm tra lại tồn kho lần cuối từ Inventory
     for (const item of cartItems) {
       let inventory = await Inventory.findOne({
         inven_productId: item.productId,
@@ -135,7 +145,6 @@ const checkout = async (req, res) => {
       }).session(session);
 
       let availableStock = inventory ? inventory.inven_stock : 0;
-
 
       if (availableStock < item.quantity) {
         await session.abortTransaction();
@@ -146,7 +155,6 @@ const checkout = async (req, res) => {
       }
     }
 
-    //  Tách đơn theo shop (GroupBy shop_id)
     const shopOrderMap = {};
     for (const item of cartItems) {
       const key = item.shopId.toString();
@@ -160,13 +168,11 @@ const checkout = async (req, res) => {
     const shopOrders = Object.values(shopOrderMap);
     const createdOrderIds = [];
 
-    // Tạo Order song song cho từng shop (par)
     for (const shopOrder of shopOrders) {
       const shopId = shopOrder.shopId.toString();
       let discountAmount = 0;
       let appliedDiscountCode = null;
 
-      // Áp dụng Discount (nếu có)
       if (discounts && discounts[shopId]) {
         const { code } = discounts[shopId];
         const foundDiscount = await Discount.findOne({
@@ -190,11 +196,9 @@ const checkout = async (req, res) => {
               discountAmount = shopOrder.totalPrice * (foundDiscount.discount_value / 100);
             }
 
-            // Đảm bảo không giảm quá tổng đơn
             discountAmount = Math.min(discountAmount, shopOrder.totalPrice);
             appliedDiscountCode = code;
 
-            // Cập nhật lượt dùng Discount
             await Discount.findByIdAndUpdate(foundDiscount._id, {
               $inc: { discount_max_uses: -1 },
               $push: { discount_users_used: userId }
@@ -225,7 +229,6 @@ const checkout = async (req, res) => {
       createdOrderIds.push(newOrder[0]._id);
     }
 
-    //  updateInventory(decrement) - $inc: { inven_stock: -quantity }
     for (const item of cartItems) {
       const result = await Inventory.findOneAndUpdate(
         { inven_productId: item.productId, inven_shopId: item.shopId },
@@ -233,7 +236,6 @@ const checkout = async (req, res) => {
         { session, new: true }
       );
 
-      // Nếu không có Inventory record, tạo mới với stock
       if (!result) {
         await Inventory.create([
           {
@@ -246,7 +248,6 @@ const checkout = async (req, res) => {
       }
     }
 
-    //clearCart
     const purchasedProductIds = cartItems.map((i) => i.productId.toString());
     await Cart.findOneAndUpdate(
       { cart_userId: userId, cart_state: "active" },
@@ -261,7 +262,6 @@ const checkout = async (req, res) => {
 
     await session.commitTransaction();
 
-    // Trả về order_ids cho Frontend
     return res.status(201).json({
       message: "Đặt hàng thành công! Cảm ơn bạn đã mua hàng.",
       status: "success",

@@ -1,6 +1,6 @@
 import express from "express";
 
-import {signUp, login, logout, getUserInfoById, updateProfile, changePassword, removeAddress, addAddress }
+import {signUp, login, logout, getUserInfoById, updateProfile, changePassword, removeAddress, addAddress, refreshTokenService }
         from "../controllers/UserController.js";
 import {authenToken} from "../middlewares/AuthenToken.js";
 
@@ -22,5 +22,7 @@ router.put('/password/:userId', authenToken, changePassword);
 router.post('/address/:userId', authenToken, addAddress);
 router.delete('/address/:userId/:addressIndex', authenToken, removeAddress);
 
+// REFRESH TOKEN
+router.post('/refresh-token/:userId', refreshTokenService);
 
 export default router;

@@ -257,7 +257,7 @@ const refreshTokenService = async (req, res) => {
         
         const token = authHeader.split(" ")[1];
 
-        jwt.verify(token, process.env.REFRESH_TOKEN, async (err, user) => {
+        jwt.verify(token, process.env.REFRESH_JWT_SECRET, async (err, user) => {
             if (err) {
                 return res.status(403).json({
                     status: "error",

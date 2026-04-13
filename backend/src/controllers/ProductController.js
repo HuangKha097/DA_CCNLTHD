@@ -16,11 +16,17 @@ const createProduct = async (req, res) => {
             isPublished
         } = req.body;
 
-        // Validate shop exists
         const shop = await Shop.findById(product_shop);
         if (!shop) {
             return res.status(404).json({
                 message: "Shop không tồn tại",
+                status: 'error'
+            });
+        }
+
+        if (shop.status === 'banned') {
+            return res.status(403).json({
+                message: "Shop này đã bị ban, không thể đăng sản phẩm mới",
                 status: 'error'
             });
         }
@@ -350,7 +356,6 @@ const getAllProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
-        // Lấy inventory cho mỗi product
         const productsWithStock = await Promise.all(
             products.map(async (product) => {
                 const inventory = await Inventory.findOne({
@@ -401,15 +406,20 @@ const getProductDetail = async (req, res) => {
             });
         }
 
-        // Chỉ cho xem sản phẩm đã publish và shop đang active (trừ khi là shop owner)
-        if (!product.isPublished || (product.product_shop && product.product_shop.status === 'inactive')) {
+        if (!product.isPublished || (product.product_shop && product.product_shop.status === 'banned')) {
             return res.status(403).json({
                 message: "Sản phẩm hoặc gian hàng hiện không khả dụng",
                 status: 'error'
             });
         }
 
-        // Lấy inventory khi hiển thị chi tiết sản phẩm
+        if (product.product_shop && product.product_shop.status === 'inactive') {
+            return res.status(403).json({
+                message: "Sản phẩm hoặc gian hàng hiện không khả dụng",
+                status: 'error'
+            });
+        }
+
         const inventory = await Inventory.findOne({
             inven_productId: productId,
             inven_shopId: product.product_shop._id
@@ -443,6 +453,7 @@ const getRelatedProducts = async (req, res) => {
             });
         }
 
+        // Chỉ lấy sản phẩm từ shop active (loại bỏ shop bị ban)
         const activeShops = await Shop.find({ status: 'active' }).select('_id');
         const activeShopIds = activeShops.map(s => s._id);
 
@@ -494,8 +505,6 @@ const searchProducts = async (req, res) => {
         }
 
         const skip = (page - 1) * limit;
-
-        // Search trong product_name và product_description
         const searchRegex = new RegExp(keyword, 'i');
         
         const activeShops = await Shop.find({ status: 'active' }).select('_id');
@@ -516,7 +525,6 @@ const searchProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
-        // Lấy inventory cho mỗi product
         const productsWithStock = await Promise.all(
             products.map(async (product) => {
                 const inventory = await Inventory.findOne({
@@ -577,7 +585,6 @@ const filterProducts = async (req, res) => {
         const activeShops = await Shop.find({ status: 'active' }).select('_id');
         const activeShopIds = activeShops.map(s => s._id);
 
-        // Build query filter
         const filter = { isPublished: true, product_shop: { $in: activeShopIds } };
 
         if (keyword) {
@@ -610,7 +617,6 @@ const filterProducts = async (req, res) => {
             .select('-__v')
             .lean();
 
-        // Lấy inventory cho mỗi product
         const productsWithStock = await Promise.all(
             products.map(async (product) => {
                 const inventory = await Inventory.findOne({
