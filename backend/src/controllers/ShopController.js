@@ -13,6 +13,10 @@ const signUp = async (req, res) => {
     if (!checkOwner) {
       return res.status(404).json({ message: "Owner not found" });
     }
+    const currentUser = req.headers["x-client-id"];
+    if(checkOwner._id.toString() !== currentUser){
+        return res.status(400).json({message: "ownerId không hợp lệ"});
+    }
     const holderShop = await Shop.findOne({ email }).lean();
     if (holderShop) {
       return res.status(400).json({

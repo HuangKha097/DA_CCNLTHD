@@ -28,7 +28,7 @@ router.get('/related/:productId', getRelatedProducts);
 router.get('/published/all/:shopId', getPublishedProducts); // Public access for shop page
 
 //  PRIVATE ROUTES (Shop/Vendor)
-router.post('/create', authenToken, isCurrentUser, checkShopNotBanned, createProduct);
+router.post('/create/:shopId', authenToken, isCurrentUser, checkShopNotBanned, createProduct);
 router.put('/:productId', authenToken, isCurrentUser, checkShopNotBanned, updateProduct);
 router.delete('/:productId', authenToken, isCurrentUser, checkShopNotBanned, deleteProduct);
 

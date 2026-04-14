@@ -5,7 +5,6 @@ import Inventory from "../models/Inventory.js";
 const createProduct = async (req, res) => {
     try {
         const {
-            product_shop,
             product_name,
             product_price,
             product_description,
@@ -15,8 +14,8 @@ const createProduct = async (req, res) => {
             product_images,
             isPublished
         } = req.body;
+        const shop = req.params.shopId;
 
-        const shop = await Shop.findById(product_shop);
         if (!shop) {
             return res.status(404).json({
                 message: "Shop không tồn tại",
@@ -32,7 +31,7 @@ const createProduct = async (req, res) => {
         }
 
         const existingProduct = await Product.findOne({
-            product_shop,
+            product_shop: shop,
             product_name
         });
 
@@ -44,7 +43,7 @@ const createProduct = async (req, res) => {
         }
 
         const newProduct = await Product.create({
-            product_shop,
+            product_shop:shop,
             product_name,
             product_price,
             product_description,
@@ -79,6 +78,15 @@ const updateProduct = async (req, res) => {
             });
         }
 
+        // Double-check: Ensure product belongs to user's shop (middleware should have checked this)
+        const productShop = await Shop.findById(currentProduct.product_shop);
+        if (!productShop || productShop.owner.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({
+                message: "Bạn không có quyền cập nhật sản phẩm này",
+                status: 'error'
+            });
+        }
+
         // Prevent updating product_shop (keep original behavior)
         if (updateData.product_shop) {
             delete updateData.product_shop;
@@ -107,7 +115,7 @@ const updateProduct = async (req, res) => {
 
         return res.status(200).json({
             message: "Cập nhật sản phẩm thành công",
-            status: 'success',
+            status: "success",
             metadata: updatedProduct
         });
     } catch (error) {
@@ -120,12 +128,8 @@ const publishProduct = async (req, res) => {
     try {
         const { productId } = req.params;
 
-        const product = await Product.findByIdAndUpdate(
-            productId,
-            { isPublished: true },
-            { new: true }
-        );
-
+        // Check product ownership first
+        const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({
                 message: "Sản phẩm không tồn tại",
@@ -133,10 +137,24 @@ const publishProduct = async (req, res) => {
             });
         }
 
+        const productShop = await Shop.findById(product.product_shop);
+        if (!productShop || productShop.owner.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({
+                message: "Bạn không có quyền thao tác với sản phẩm này",
+                status: 'error'
+            });
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { isPublished: true },
+            { new: true }
+        );
+
         return res.status(200).json({
             message: "Đã public sản phẩm",
             status: 'success',
-            metadata: product
+            metadata: updatedProduct
         });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
@@ -148,12 +166,8 @@ const unpublishProduct = async (req, res) => {
     try {
         const { productId } = req.params;
 
-        const product = await Product.findByIdAndUpdate(
-            productId,
-            { isPublished: false },
-            { new: true }
-        );
-
+        // Check product ownership first
+        const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({
                 message: "Sản phẩm không tồn tại",
@@ -161,10 +175,24 @@ const unpublishProduct = async (req, res) => {
             });
         }
 
+        const productShop = await Shop.findById(product.product_shop);
+        if (!productShop || productShop.owner.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({
+                message: "Bạn không có quyền thao tác với sản phẩm này",
+                status: 'error'
+            });
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { isPublished: false },
+            { new: true }
+        );
+
         return res.status(200).json({
             message: "Đã chuyển sản phẩm về draft",
             status: 'success',
-            metadata: product
+            metadata: updatedProduct
         });
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
@@ -284,14 +312,24 @@ const deleteProduct = async (req, res) => {
     try {
         const { productId } = req.params;
 
-        const deletedProduct = await Product.findByIdAndDelete(productId);
-
-        if (!deletedProduct) {
+        // Check product ownership first
+        const product = await Product.findById(productId);
+        if (!product) {
             return res.status(404).json({
                 message: "Sản phẩm không tồn tại",
                 status: 'error'
             });
         }
+
+        const productShop = await Shop.findById(product.product_shop);
+        if (!productShop || productShop.owner.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({
+                message: "Bạn không có quyền xóa sản phẩm này",
+                status: 'error'
+            });
+        }
+
+        const deletedProduct = await Product.findByIdAndDelete(productId);
 
         return res.status(200).json({
             message: "Xóa sản phẩm thành công",

@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import KeyToken from "../models/KeyToken.js";
 import Shop from "../models/Shop.js";
 
-
 export const authenToken = async (req, res, next) => {
     try {
         const userId = req.headers['x-client-id'];
@@ -75,7 +74,7 @@ export const isCurrentUser = async (req, res, next) => {
             });
         }
 
-        const shopId = req.body.shopId || req.params.shopId;
+        const shopId = req.body.shopId || req.params.shopId|| req.headers['shop_id'];
         if (!shopId) {
             return res.status(400).json({
                 error: 'Thiếu shopId.',
@@ -99,6 +98,37 @@ export const isCurrentUser = async (req, res, next) => {
     } catch (error) {
         return res.status(500).json({
             error: 'Server error during shop verification',
+            details: error.message
+        });
+    }
+};
+
+export const isCurrentUserProfile = async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user || !user.userId) {
+            return res.status(401).json({
+                error: 'Access denied. User not authenticated.',
+            });
+        }
+
+        const targetUserId = req.params.userId ;
+        if (!targetUserId) {
+            return res.status(400).json({
+                error: 'Thiếu userId.',
+            });
+        }
+
+        if (user.userId.toString() !== targetUserId.toString()) {
+            return res.status(403).json({
+                error: 'Bạn chỉ có thể sửa profile của mình.',
+            });
+        }
+
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            error: 'Server error during user profile verification',
             details: error.message
         });
     }
@@ -135,4 +165,3 @@ export const checkShopNotBanned = async (req, res, next) => {
         });
     }
 };
-

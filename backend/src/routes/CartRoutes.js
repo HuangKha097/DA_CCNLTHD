@@ -1,14 +1,14 @@
 import express from "express";
 
 import { addToCart, getCart, updateCart, removeFromCart } from "../controllers/CartController.js";
-import { authenToken } from "../middlewares/AuthenToken.js";
+import {authenToken, isCurrentUserProfile} from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-router.post('/add', authenToken, addToCart);
-router.get('/', authenToken, getCart);
-router.put('/', authenToken, updateCart);
-router.delete('/:productId', authenToken, removeFromCart);
-router.get('/:userId', authenToken, getCart);
+router.post('/add/:userId', authenToken,isCurrentUserProfile, addToCart);
+router.get('/', authenToken, isCurrentUserProfile, getCart);
+router.put('/', authenToken, isCurrentUserProfile, updateCart);
+router.delete('/:productId', authenToken, isCurrentUserProfile, removeFromCart);
+router.get('/:userId', authenToken,isCurrentUserProfile, getCart);
 
 export default router;

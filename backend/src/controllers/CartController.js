@@ -4,15 +4,23 @@ import Shop from "../models/Shop.js";
 
 const addToCart = async (req, res) => {
     try {
-        const userId = req.headers['x-client-id'] || req.body.userId;
+        // Lấy userId từ token (đã được decode bởi authenToken middleware)
+        const userId = req.user?.userId || req.headers['x-client-id'] || req.body.userId;
         const {productId, shopId, quantity} = req.body;
 
         if (!userId) {
             return res.status(400).json({message: "Thiếu UserId", status: "error"});
         }
 
-        const product = await Product.findById(productId);
+        if (!productId || !shopId || !quantity) {
+            return res.status(400).json({
+                message: "Thiếu thông tin: productId, shopId hoặc quantity",
+                status: "error"
+            });
+        }
 
+        // Kiểm tra sản phẩm tồn tại
+        const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({
                 message: "Sản phẩm không tồn tại",
@@ -20,14 +28,25 @@ const addToCart = async (req, res) => {
             });
         }
 
-        const shop = await Shop.findById(shopId);
-        if (shop && shop.status === 'inactive') {
+        // Kiểm tra sản phẩm có thuộc về shop được cung cấp không
+        if (product.product_shop.toString() !== shopId.toString()) {
             return res.status(400).json({
-                message: "Gian hàng này hiện đang bị vô hiệu hoá, thao tác không thành công",
+                message: "Sản phẩm này không thuộc shop được chỉ định",
                 status: "error"
             });
         }
-        if (shop && shop.owner.toString() === userId.toString()) {
+
+        // Kiểm tra shop tồn tại
+        const shop = await Shop.findById(shopId);
+        if (!shop) {
+            return res.status(404).json({
+                message: "Shop không tồn tại",
+                status: "error"
+            });
+        }
+
+        // Kiểm tra user có phải owner của shop không (không thể add sản phẩm của chính shop mình)
+        if (shop.owner.toString() === userId.toString()) {
             return res.status(400).json({
                 message: "Bạn không thể thêm sản phẩm của chính shop mình vào giỏ hàng",
                 status: "error"
@@ -40,21 +59,12 @@ const addToCart = async (req, res) => {
         });
 
         const productExists = userCart?.cart_products.find(
-            (p) => p.productId === productId
+            (p) => p.productId.toString() === productId.toString()
         );
 
         const totalQuantity = productExists
             ? productExists.quantity + quantity
             : quantity;
-
-        // check tồn kho chuẩn
-        if (product.product_quantity < totalQuantity) {
-            return res.status(400).json({
-                message: "Tổng số lượng vượt quá tồn kho",
-                status: "error"
-            });
-        }
-
 
         if (!userCart) {
             const newCart = await Cart.create({
@@ -66,7 +76,7 @@ const addToCart = async (req, res) => {
                     quantity,
                     name: product.product_name,
                     price: product.product_price,
-                    shopName: product.shopName,
+                    shopName: shop.name,
                     product_thumb: product.product_thumb
                 }],
                 cart_count_product: 1
@@ -95,7 +105,7 @@ const addToCart = async (req, res) => {
                 {new: true}
             );
         } else {
-
+            // thêm sản phẩm mới vào giỏ
             updatedCart = await Cart.findOneAndUpdate(
                 {
                     cart_userId: userId,
@@ -109,7 +119,7 @@ const addToCart = async (req, res) => {
                             quantity,
                             name: product.product_name,
                             price: product.product_price,
-                            shopName: product.shopName,
+                            shopName: shop.name,
                             product_thumb: product.product_thumb
                         }
                     },
@@ -136,7 +146,7 @@ const addToCart = async (req, res) => {
 
 const getCart = async (req, res) => {
     try {
-        const userId = req.headers['x-client-id'] || req.params.userId;
+        const userId = req.user?.userId || req.headers['x-client-id'] || req.params.userId;
         const cart = await Cart.findOne({cart_userId: userId});
 
         if (!cart) return res.status(404).json({message: "Không tìm thấy giỏ hàng", status: "error"});
@@ -153,7 +163,7 @@ const getCart = async (req, res) => {
 
 const updateCart = async (req, res) => {
     try {
-        const userId = req.headers['x-client-id'] || req.body.userId;
+        const userId = req.user?.userId || req.headers['x-client-id'] || req.body.userId;
         const {productId, quantity} = req.body;
 
         const updatedCart = await Cart.findOneAndUpdate(
@@ -174,7 +184,7 @@ const updateCart = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
     try {
-        const userId = req.headers['x-client-id'] || req.params.userId;
+        const userId = req.params.userId;
         const {productId} = req.params;
 
         const updatedCart = await Cart.findOneAndUpdate(
