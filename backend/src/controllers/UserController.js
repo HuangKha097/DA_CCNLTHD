@@ -126,7 +126,8 @@ const logout = async (req, res) => {
 // USER PROFILE & ADDRESS
 const getUserInfoById = async (req, res) => {
     try {
-        const userId = req.params.userId;
+        // const userId = req.params.userId;
+        const userId = req.headers["x-client-id"].toString();
         const data = await User.findById(userId).select("-password -__v");
         if (!data) return res.status(404).json({message: "User not found", status: "error"});
 
