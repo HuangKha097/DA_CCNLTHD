@@ -12,7 +12,8 @@ const createProduct = async (req, res) => {
             product_attributes,
             product_thumb,
             product_images,
-            isPublished
+            isPublished,
+            inven_stock = 0
         } = req.body;
         const shop = req.params.shopId;
 
@@ -52,6 +53,14 @@ const createProduct = async (req, res) => {
             product_thumb,
             product_images: product_images || [],
             isPublished: isPublished !== undefined ? isPublished : false 
+        });
+
+        // Create inventory entry for the new product
+        await Inventory.create({
+            inven_productId: newProduct._id,
+            inven_shopId: shop,
+            inven_stock: inven_stock,
+            inven_location: 'unknown'
         });
 
         return res.status(201).json({
