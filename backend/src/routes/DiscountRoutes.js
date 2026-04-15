@@ -7,11 +7,11 @@ import {
     deleteDiscount,
     toggleDiscountStatus
 } from "../controllers/DiscountController.js";
-import {authenToken, isCurrentUser} from "../middlewares/AuthenToken.js";
+import {authenToken, isCurrentShop} from "../middlewares/AuthenToken.js";
 
 const router = express.Router();
 
-router.post('/create', authenToken, isCurrentUser, createDiscountCode);
+router.post('/create', authenToken, isCurrentShop, createDiscountCode);
 router.post('/amount', authenToken, getDiscountAmount);
 router.post('/delete', authenToken, deleteDiscount);
 router.post('/toggle', authenToken, toggleDiscountStatus);

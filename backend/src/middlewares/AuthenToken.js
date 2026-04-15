@@ -65,7 +65,7 @@ export const isAdmin = async (req, res, next) => {
         });
     }
 };
-export const isCurrentUser = async (req, res, next) => {
+export const isCurrentShop = async (req, res, next) => {
     try {
         const user = req.user;
         if (!user || !user.userId) {
