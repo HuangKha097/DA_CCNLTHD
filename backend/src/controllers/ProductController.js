@@ -13,7 +13,7 @@ const createProduct = async (req, res) => {
             product_thumb,
             product_images,
             isPublished,
-            inven_stock = 0
+            product_quantity
         } = req.body;
         const shop = req.params.shopId;
 
@@ -59,7 +59,7 @@ const createProduct = async (req, res) => {
         await Inventory.create({
             inven_productId: newProduct._id,
             inven_shopId: shop,
-            inven_stock: inven_stock,
+            inven_stock: product_quantity || 1,
             inven_location: 'unknown'
         });
 
